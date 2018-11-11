@@ -27,10 +27,7 @@ public class BoardManager {
 	private String name;
 	
 	@Column(name = "site_menu_id", nullable = false)
-	private Long siteMenuId;
-	
-	@Column(name = "use_all_sites_yn", nullable = false)
-	private String useAllSitesYn; //모든 사이트에서 사용 가능 여부
+	private Long siteMenuId; //어떤 사이트 게시판인지 설정
 	
 	private String description;
 	

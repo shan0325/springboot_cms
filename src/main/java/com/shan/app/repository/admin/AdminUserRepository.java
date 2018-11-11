@@ -10,5 +10,7 @@ public interface AdminUserRepository extends JpaRepository<User, String> {
 
 	Optional<User> findOneWithUserAuthoritiesByUserId(String userId);
 
+	User findOneByUserId(String userId);
+
 
 }

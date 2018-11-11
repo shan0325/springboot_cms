@@ -63,5 +63,9 @@ public class User {
 	private Integer loginFailCount;
 	
 	@OneToMany(mappedBy = "user")
-	private List<UserAuthority> userAuthoritys = new ArrayList<>();
+	private List<UserAuthority> authorities = new ArrayList<>();
+	
+	public void addAuthority(UserAuthority authority) {
+		this.authorities.add(authority);
+	}
 }

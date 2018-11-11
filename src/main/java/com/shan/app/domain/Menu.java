@@ -32,7 +32,7 @@ public class Menu {
 	private Long topId;
 
 	@Column(nullable = false)
-	private Integer depth;
+	private Integer level; //level이 1이면 홈페이지
 	
 	@Column(length = 100, nullable = false)
 	private String name;
@@ -45,21 +45,16 @@ public class Menu {
 	@Column(name = "use_yn", length = 1, nullable = false)
 	private String useYn;
 	
-	@Column(name = "menu_use_gubun", length = 50, nullable = false)
-	private String menuUseGubun; //all, admin, home 구분
+	@Column(name = "site_gubun", length = 50, nullable = false)
+	private String siteGubun; //all, admin, home 구분
 	
 	@Column(name = "menu_type", length = 50, nullable = false)
 	private String menuType; //list:목록, url:링크, board:게시판, contents:컨텐츠
 	
-	private String cmsUrl;
+	private String url;
 	
-	@Column(name = "cms_url_target", length = 50)
-	private String cmsUrlTarget;
-	
-	private String homeUrl;
-	
-	@Column(name = "home_url_target", length = 50)
-	private String homeUrlTarget;
+	@Column(name = "url_target", length = 50)
+	private String urlTarget;
 	
 	@Column(nullable = false)
 	private Integer ord;

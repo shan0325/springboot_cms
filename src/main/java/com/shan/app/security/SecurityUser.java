@@ -20,7 +20,7 @@ public class SecurityUser extends User {
 	public static final String ROLE_PREFIX = "ROLE_";
 	
 	public SecurityUser(com.shan.app.domain.User user) {
-		super(user.getUserId(), user.getPassword(), makeGrantedAuthority(user.getUserAuthoritys()));
+		super(user.getUserId(), user.getPassword(), makeGrantedAuthority(user.getAuthorities()));
 	}
 
 	private static List<GrantedAuthority> makeGrantedAuthority(List<UserAuthority> userAuthoritys) {

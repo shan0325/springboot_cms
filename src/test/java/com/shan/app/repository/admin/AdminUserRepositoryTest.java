@@ -24,9 +24,9 @@ public class AdminUserRepositoryTest {
 	@Test
 	public void saveUser() {
 		User user = new User();
-		user.setUserId("test01");
+		user.setUserId("admin");
 		user.setPassword("1234");
-		user.setName("테스트");
+		user.setName("관리자");
 		user.setRegDate(new Date());
 		
 		User newUser = adminUserRepository.save(user);
