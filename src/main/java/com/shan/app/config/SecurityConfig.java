@@ -1,12 +1,7 @@
 package com.shan.app.config;
 
-import java.util.ArrayList;
-
 import javax.annotation.Resource;
 
-import org.assertj.core.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,10 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.header.writers.frameoptions.WhiteListedAllowFromStrategy;
-import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
 import com.shan.app.security.AjaxSessionCheckFilter;
 import com.shan.app.security.CustomAuthenticationFailureHandler;
@@ -33,8 +27,6 @@ public class SecurityConfig {
 	@Configuration
 	@Order(1)
 	public static class AdminConfigurationAdapter extends WebSecurityConfigurerAdapter {
-
-		private final Logger logger = LoggerFactory.getLogger(AdminConfigurationAdapter.class);
 		
 		@Resource(name="adminCustomUserDetailsService")
 		private AdminCustomUserDetailsService adminCustomUserDetailsService;
@@ -54,20 +46,21 @@ public class SecurityConfig {
 			http.csrf().disable();
 			http.headers().frameOptions().disable();
 			
-			http.authorizeRequests()
+			http.addFilterAfter(ajaxSessionCheckFilter(), ExceptionTranslationFilter.class)
+				.authorizeRequests()
 					.antMatchers("/h2-console/**").permitAll()
-					.antMatchers("/spring/login/**").permitAll()
-					.antMatchers("/spring/**").authenticated()
+					.antMatchers("/spring-admin/login/**").permitAll()
+					.antMatchers("/spring-admin/**").authenticated()
 				.and()
 				.formLogin()
-					.loginPage("/spring/login") //로그인 페이지
+					.loginPage("/spring-admin/login") //로그인 페이지
 					.usernameParameter("userId")
 					.passwordParameter("password")
-					.loginProcessingUrl("/spring/login/process") //로그인 폼 action
+					//.loginProcessingUrl("/spring-admin/login/process") //로그인 폼 action
 					.permitAll()
 				.and()
 				.logout()
-					.logoutUrl("/spring/logout")
+					.logoutUrl("/spring-admin/logout")
 					.permitAll();
 		}
 		
@@ -83,7 +76,7 @@ public class SecurityConfig {
 			CustomAuthenticationSuccessHandler successHandler = new CustomAuthenticationSuccessHandler();
 			successHandler.setTargetUrlParameter("loginRedirect");
 			successHandler.setUseReferer(true);
-			successHandler.setDefaultUrl("/spring/main");
+			successHandler.setDefaultUrl("/spring-admin/main");
 			return successHandler;
 		}
 		
@@ -94,7 +87,7 @@ public class SecurityConfig {
 			failureHandler.setLoginpasswdname("password");
 			failureHandler.setLoginredirectname("loginRedirect");
 			failureHandler.setExceptionmsgname("securityexceptionmsg");
-			failureHandler.setDefaultFailureUrl("/spring/login?error=true");
+			failureHandler.setDefaultFailureUrl("/spring-admin/login?error=true");
 			return failureHandler;
 		}
 		

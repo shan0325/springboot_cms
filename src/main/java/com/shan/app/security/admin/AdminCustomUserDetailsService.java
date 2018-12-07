@@ -33,8 +33,8 @@ public class AdminCustomUserDetailsService implements UserDetailsService {
 		
 		Optional<User> userFromDatabase = adminUserRepository.findOneWithUserAuthoritiesByUserId(userId);
 		return userFromDatabase.map(user -> {
-			if("Y".equals(user.getState())) {
-				throw new UserNotActivatedException("User " + userId + "was not activated");
+			if(!"Y".equals(user.getState())) {
+				throw new UserNotActivatedException("User " + userId + " was not activated");
 			}
 			return new SecurityUser(user);
 		}).orElseThrow(() -> new EntityNotFoundException(User.class, "userId", userId));

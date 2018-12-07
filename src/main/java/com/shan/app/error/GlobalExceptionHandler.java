@@ -1,5 +1,6 @@
 package com.shan.app.error;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -116,8 +117,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * @return the ApiError object
      */
     @ExceptionHandler(javax.validation.ConstraintViolationException.class)
-    protected ResponseEntity<Object> handleConstraintViolation(
-            javax.validation.ConstraintViolationException ex) {
+    protected ResponseEntity<Object> handleConstraintViolation(javax.validation.ConstraintViolationException ex) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
         apiError.setMessage("Validation error");
         apiError.addValidationErrors(ex.getConstraintViolations());
@@ -131,8 +131,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * @return the ApiError object
      */
     @ExceptionHandler(EntityNotFoundException.class)
-    protected ResponseEntity<Object> handleEntityNotFound(
-            EntityNotFoundException ex) {
+    protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
         apiError.setMessage(ex.getMessage());
         return buildResponseEntity(apiError);
@@ -208,12 +207,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(apiError);
     }
     
-    @ExceptionHandler(EntityDuplicatedException.class)
-    protected ResponseEntity<Object> handleEntityDuplicatedException(EntityDuplicatedException ex) {
-        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
-        apiError.setMessage(ex.getMessage());
-        return buildResponseEntity(apiError);
-    }
+    @ExceptionHandler(UserDuplicatedException.class)
+	public ResponseEntity<Object> handleUserDuplicatedException(final UserDuplicatedException ex) {
+    	ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
+    	apiError.setMessage(String.format("[%s] 중복된 아이디가 있습니다.", ex.getUserId()));
+    		
+		return buildResponseEntity(apiError);
+	}
 	
 	@ExceptionHandler(PasswordConfirmException.class)
 	public ResponseEntity<Object> handlePasswordConfirmException(PasswordConfirmException ex) {

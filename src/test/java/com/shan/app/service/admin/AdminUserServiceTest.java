@@ -1,6 +1,5 @@
 package com.shan.app.service.admin;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -31,10 +30,10 @@ public class AdminUserServiceTest {
 		user.setPassword("1234");
 		user.setName("테스트");
 
-		List<String> authorities = new ArrayList<>();
-		authorities.add("USER");
+		List<String> authoritys = new ArrayList<>();
+		authoritys.add("MEMBER");
 		
-		user.setAuthorities(authorities);
+		user.setAuthoritys(authoritys);
 		
 		User newUser = adminUserService.createUser(user);
 		assertThat(user.getUserId(), is(newUser.getUserId()));

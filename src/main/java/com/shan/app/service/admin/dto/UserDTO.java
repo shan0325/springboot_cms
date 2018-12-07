@@ -1,13 +1,15 @@
 package com.shan.app.service.admin.dto;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import com.shan.app.domain.Authority;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 
@@ -25,16 +27,48 @@ public class UserDTO {
 		@NotBlank(message = "이름을 입력해주세요.")
 		private String name;
 		
+		@Email(message = "이메일을 정확히 입력해주세요.")
 		private String email;
+		
+		@Pattern(regexp = "[0-9]{10,11}", message = "10~11자리의 숫자만 입력가능합니다")
 		private String hp;
+		
+		@Pattern(regexp = "^[0-9]*$", message = "숫자만 입력가능합니다")
 		private String tel;
 		
-		@NotBlank(message = "권한을 입력해주세요.")
-		private List<String> authorities;
+		@NotNull(message = "상태를 선택해주세요.")
+		private String state;
+		
+		@NotNull(message = "권한을 입력해주세요.")
+		private List<String> authoritys;
 	}
 	
+	@Data
+	public static class Update {
+		private String password;
+		private String passwordConfirm;
+		
+		@NotBlank(message = "이름을 입력해주세요.")
+		private String name;
+		
+		@Email(message = "이메일을 정확히 입력해주세요.")
+		private String email;
+		
+		@Pattern(regexp = "[0-9]{10,11}", message = "10~11자리의 숫자만 입력가능합니다")
+		private String hp;
+		
+		@Pattern(regexp = "^[0-9]*$", message = "숫자만 입력가능합니다")
+		private String tel;
+		
+		@NotNull(message = "상태를 선택해주세요.")
+		private String state;
+		
+		@NotNull(message = "권한을 입력해주세요.")
+		private List<String> authoritys;
+	}
+	
+	@Data
 	public static class Response {
-		private Long id;
 		private String userId;
 		private String name;
 		private String email;
@@ -42,9 +76,16 @@ public class UserDTO {
 		private String tel;
 		private String regUserId;
 		private String state;
-		private Date passwordUpdateDate;
-		private Date regDate;
-		private Date updateDate;
-		private List<Authority> authorities;
+		
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+		private LocalDateTime passwordUpdateDate;
+		
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+		private LocalDateTime regDate;
+		
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+		private LocalDateTime updateDate;
+		
+		private List<AuthorityDTO.DefaultResponse> authoritys;
 	}
 }

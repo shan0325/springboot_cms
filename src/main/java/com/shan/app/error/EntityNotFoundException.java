@@ -13,7 +13,8 @@ public class EntityNotFoundException extends RuntimeException {
     }
 	
 	private static String generateMessage(String entity, Map<String, String> searchParams) {
-        return StringUtils.capitalize(entity) + " was not found for parameters " + searchParams;
+        //return StringUtils.capitalize(entity) + " was not found for parameters " + searchParams;
+		return "매개변수 " + searchParams + "에 대한 " + StringUtils.capitalize(entity) + "를(을) 찾을 수 없습니다.";
     }
 
     private static <K, V> Map<K, V> toMap(Class<K> keyType, Class<V> valueType, Object... entries) {

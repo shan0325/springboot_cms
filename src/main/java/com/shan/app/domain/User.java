@@ -1,5 +1,6 @@
 package com.shan.app.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,31 +10,31 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userId")
+//Entity 클래스를 프로젝트 코드상에서 기본생성자로 생성하는 것은 막되, JPA에서 Entity 클래스를 생성하는것은 허용하기 위해 추가
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"userAuthoritys"})
 @Getter
 @Setter
 @Entity
 @Table(name = "tb_user")
 public class User {
 	
-	@NotBlank
-	@Size(min = 1, max = 50)
 	@Id
 	@Column(name = "user_id", length = 50)
 	private String userId;
 
-	@NotBlank
 	@Column(nullable = false)
 	private String password;
 	
 	private String salt;
 	
-	@NotBlank
 	@Size(min = 1, max = 50)
 	@Column(length = 100, nullable = false)
 	private String name;
@@ -51,21 +52,23 @@ public class User {
 	private String state = "N";
 	
 	@Column(name = "password_update_date")
-	private Date passwordUpdateDate;
+	private LocalDateTime passwordUpdateDate;
 	
 	@Column(name = "reg_date")
-	private Date regDate;
+	private LocalDateTime regDate;
 	
 	@Column(name = "update_date")
-	private Date updateDate;
+	private LocalDateTime updateDate;
 	
 	@Column(name = "login_fail_count")
 	private Integer loginFailCount;
 	
 	@OneToMany(mappedBy = "user")
-	private List<UserAuthority> authorities = new ArrayList<>();
+	private List<UserAuthority> userAuthoritys = new ArrayList<>();
 	
 	public void addAuthority(UserAuthority authority) {
-		this.authorities.add(authority);
+		this.userAuthoritys.add(authority);
 	}
+	
+	
 }

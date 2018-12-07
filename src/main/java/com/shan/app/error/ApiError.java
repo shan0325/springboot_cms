@@ -26,6 +26,7 @@ import lombok.EqualsAndHashCode;
 @JsonTypeIdResolver(LowerCaseClassNameResolver.class)
 public class ApiError {
 
+	private String code;
 	private HttpStatus status;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private LocalDateTime timestamp;
