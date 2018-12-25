@@ -1,5 +1,7 @@
 package com.shan.app.controller.admin;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
@@ -25,7 +27,7 @@ import com.shan.app.service.admin.AdminUserService;
 import com.shan.app.service.admin.dto.UserDTO;
 
 @RestController
-@RequestMapping("/spring-admin")
+@RequestMapping("/spring-admin/api")
 public class AdminUserResource {
 	
 	private final Logger logger = LoggerFactory.getLogger(AdminUserResource.class);
@@ -64,8 +66,13 @@ public class AdminUserResource {
 	public ResponseEntity<Object> getUsers(Pageable pageable) {
 		logger.info("Request Param [{}]", pageable);
 		
-		Page<UserDTO.Response> users = adminUserService.getUsers(pageable);
-		return new ResponseEntity<>(users, HttpStatus.OK);
+		Page<User> users = adminUserService.getUsers(pageable);
+		
+		return new ResponseEntity<>(users.map(user -> {
+					UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
+					response.add(linkTo(AdminUserResource.class).slash("user").slash(user.getUserId()).withRel("user"));
+					return response;
+				}), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/user/{userId}")

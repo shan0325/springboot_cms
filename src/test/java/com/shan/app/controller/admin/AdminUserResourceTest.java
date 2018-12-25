@@ -34,6 +34,7 @@ import com.shan.app.service.admin.dto.UserDTO.Update;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class AdminUserResourceTest {
 
 	@Autowired
@@ -85,7 +86,7 @@ public class AdminUserResourceTest {
 		
 		user.setAuthoritys(authoritys);
 		
-		mockMvc.perform(post("/spring-admin/user")
+		mockMvc.perform(post("/spring-admin/api/user")
 							.session(session)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(user)))
@@ -107,7 +108,7 @@ public class AdminUserResourceTest {
 		
 		update.setAuthoritys(authoritys);
 		
-		mockMvc.perform(put("/spring-admin/user/admin")
+		mockMvc.perform(put("/spring-admin/api/user/admin")
 							.session(session)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(update)))
@@ -117,7 +118,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void getUserTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/user/admin")
+		mockMvc.perform(get("/spring-admin/api/user/admin")
 							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());
@@ -125,7 +126,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void getUsersTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/users")
+		mockMvc.perform(get("/spring-admin/api/users")
 							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());
@@ -133,7 +134,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void deleteUserTest() throws Exception {
-		mockMvc.perform(delete("/spring-admin/user/test")
+		mockMvc.perform(delete("/spring-admin/api/user/admin")
 							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());

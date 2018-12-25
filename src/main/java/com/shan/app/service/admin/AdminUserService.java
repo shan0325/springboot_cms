@@ -8,7 +8,6 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,6 @@ import com.shan.app.repository.admin.AdminUserAuthorityRepository;
 import com.shan.app.repository.admin.AdminUserRepository;
 import com.shan.app.security.SecurityUser;
 import com.shan.app.service.admin.dto.UserDTO;
-import com.shan.app.service.admin.dto.UserDTO.Response;
 
 @Service
 @Transactional
@@ -48,9 +46,6 @@ public class AdminUserService {
 	@Autowired
 	private PasswordEncoder bCryptPasswordEncoder;
 	
-	@Autowired
-	private ModelMapper modelMapper;
-
 	
 	public User createUser(UserDTO.Create create) {
 
@@ -134,8 +129,9 @@ public class AdminUserService {
 		}
 	}
 
-	public Page<Response> getUsers(Pageable pageable) {
-		return adminUserRepository.findAll(pageable).map(user -> modelMapper.map(user, UserDTO.Response.class));
+	public Page<User> getUsers(Pageable pageable) {
+		
+		return adminUserRepository.findAll(pageable);
 	}
 
 	public void deleteUser(String userId) {
