@@ -1,6 +1,5 @@
 package com.shan.app.error;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -211,7 +210,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<Object> handleUserDuplicatedException(final UserDuplicatedException ex) {
     	ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
     	apiError.setMessage(String.format("[%s] 중복된 아이디가 있습니다.", ex.getUserId()));
-    		
 		return buildResponseEntity(apiError);
 	}
 	
@@ -219,6 +217,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<Object> handlePasswordConfirmException(PasswordConfirmException ex) {
 		String message = "비밀번호와 비밀번호확인이 일치하지않습니다.";
 		return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, message, ex));
+	}
+	
+	@ExceptionHandler(AuthorityDuplicatedException.class)
+	public ResponseEntity<Object> handleAuthorityDuplicatedException(AuthorityDuplicatedException ex) {
+		ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
+		apiError.setMessage(String.format("[%s] 중복된 권한이 있습니다.", ex.getAuthority()));
+		return buildResponseEntity(apiError);
 	}
 	
 	@ExceptionHandler(ExtensionNotAllowedException.class)

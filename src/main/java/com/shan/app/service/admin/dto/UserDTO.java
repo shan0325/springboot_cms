@@ -88,6 +88,6 @@ public class UserDTO {
 		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
 		private LocalDateTime updateDate;
 		
-		private List<AuthorityDTO.DefaultResponse> authoritys;
+		private List<AuthorityDTO.Response> authoritys;
 	}
 }
