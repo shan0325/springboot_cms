@@ -6,6 +6,8 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.shan.app.domain.Authority;
@@ -46,6 +48,24 @@ public class AdminAuthorityService {
 			.orElseThrow(() -> new EntityNotFoundException(Authority.class, "authority", authority));
 		
 		return adminAuthorityRepository.save(updateAuthority);
+	}
+
+
+	public Page<Authority> getAuthoritys(Pageable pageable) {
+		
+		return adminAuthorityRepository.findAll(pageable);
+	}
+
+
+	public Authority getAuthority(String authority) {
+		
+		return adminAuthorityRepository.findById(authority)
+										.orElseThrow(() -> new EntityNotFoundException(Authority.class, "authority", authority));
+	}
+
+	public void deleteAuthority(String authority) {
+		
+		adminAuthorityRepository.deleteById(authority);
 	}
 
 	

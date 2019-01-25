@@ -2,6 +2,8 @@ package com.shan.app.service.admin.dto;
 
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.hateoas.ResourceSupport;
+
 import lombok.Data;
 
 public class AuthorityDTO {
@@ -21,7 +23,7 @@ public class AuthorityDTO {
 	}
 	
 	@Data
-	public static class Response {
+	public static class Response extends ResourceSupport {
 		private String authority;
 		private String authorityName;
 	}

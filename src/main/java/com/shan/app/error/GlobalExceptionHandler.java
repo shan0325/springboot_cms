@@ -226,6 +226,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return buildResponseEntity(apiError);
 	}
 	
+	@ExceptionHandler(CodeDuplicatedException.class)
+	public ResponseEntity<Object> handleCodeDuplicatedException(CodeDuplicatedException ex) {
+		ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
+		apiError.setMessage(String.format("[%s] 중복된 코드가 있습니다.", ex.getCode()));
+		return buildResponseEntity(apiError);
+	}
+	
 	@ExceptionHandler(ExtensionNotAllowedException.class)
 	public ResponseEntity<Object> handleExtensionNotAllowedException(ExtensionNotAllowedException ex) {
 		String message = "업로드 할 수 있는 확장자는 [" + ex.getAllowExtensions() + "] 입니다.";

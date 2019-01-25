@@ -12,7 +12,7 @@ spring:
 #     dbcp2:
 #      validation-query: SELECT 1
   jpa:
-#    generate-ddl: true
+#     generate-ddl: true
      hibernate:
       ddl-auto: none
      show-sql: true

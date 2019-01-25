@@ -1,15 +1,12 @@
 package com.shan.app.domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -26,12 +23,24 @@ public class Code {
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	@Column(length = 20, unique = true, nullable = false)
+	
+	@Column(length = 20)
 	private String code;
 	
 	@Column(length = 100, nullable = false)
 	private String codeName;
+	
+	@Column(length = 20)
+	private String parentCode;
+	
+	@Column(length = 20)
+	private String topCode;
+	
+	@Column(length = 200)
+	private String codeDesc;
+	
+	@Column
+	private Integer level;
 	
 	@Column(length = 1, nullable = false)
 	private String useYn;
@@ -40,19 +49,10 @@ public class Code {
 	private Integer ord;
 	
 	@Column(name = "reg_date")
-	private Date regDate;
+	private LocalDateTime regDate;
 	
 	@Column(name = "update_date")
-	private Date updateDate;
+	private LocalDateTime updateDate;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "group_code_id", nullable = false)
-	private GroupCode groupCode;
-
-	@Override
-	public String toString() {
-		return "Code [id=" + id + ", code=" + code + ", codeName=" + codeName + ", useYn=" + useYn + ", ord=" + ord
-				+ ", regDate=" + regDate + ", updateDate=" + updateDate + "]";
-	}
 	
 }

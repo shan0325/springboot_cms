@@ -1,6 +1,8 @@
 package com.shan.app.controller.admin;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -78,6 +80,30 @@ public class AdminAuthorityResourceTest {
 							.session(session)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(update)))
+				.andDo(print())
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void getAuthoritysTest() throws Exception {
+		mockMvc.perform(get("/spring-admin/api/authoritys")
+							.session(session))
+				.andDo(print())
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void getAuthorityTest() throws Exception {
+		mockMvc.perform(get("/spring-admin/api/authority/ADMIN")
+							.session(session))
+				.andDo(print())
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void deleteAuthorityTest() throws Exception {
+		mockMvc.perform(delete("/spring-admin/api/authority/ADMIN")
+							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
