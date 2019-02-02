@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.shan.app.domain.Code;
 import com.shan.app.error.CodeDuplicatedException;
+import com.shan.app.error.EntityNotFoundException;
 import com.shan.app.repository.admin.AdminCodeRepository;
 import com.shan.app.service.admin.dto.CodeDTO;
 
@@ -32,7 +33,7 @@ public class AdminCodeService {
 		
 		if(!StringUtils.isEmpty(create.getParentCode())) {
 			Optional<Code> parCodeOptional = adminCodeRepository.findByCode(create.getParentCode());
-			Code parCode = parCodeOptional.orElseThrow(() -> new CodeDuplicatedException(create.getParentCode()));
+			Code parCode = parCodeOptional.orElseThrow(() -> new EntityNotFoundException(Code.class, "parentCode", create.getParentCode()));
 			
 			List<Code> codes = adminCodeRepository.findByParentCode(create.getParentCode());
 			Integer maxOrd = codes.stream()
@@ -63,7 +64,6 @@ public class AdminCodeService {
 			code.setCode(create.getCode());
 			code.setCodeName(create.getCodeName());
 			code.setCodeDesc(create.getCodeDesc());
-			code.setParentCode(create.getParentCode());
 			code.setTopCode(create.getCode());
 			code.setLevel(1);
 			code.setOrd(maxOrd + 1);
@@ -72,6 +72,36 @@ public class AdminCodeService {
 			
 			return adminCodeRepository.save(code);
 		}
+	}
+
+	public Code updateCode(Long id, @Valid CodeDTO.Update update) {
+		
+		Optional<Code> codeOptional = adminCodeRepository.findById(id);
+		Code code = codeOptional.orElseThrow(() -> new EntityNotFoundException(Code.class, "id", String.valueOf(id)));
+		
+		code.setCodeName(update.getCodeName());
+		code.setCodeDesc(update.getCodeDesc());
+		code.setUseYn(update.getUseYn());
+		code.setOrd(update.getOrd());
+		code.setUpdateDate(LocalDateTime.now());
+		
+		return adminCodeRepository.save(code);
+	}
+
+	public List<Code> getCodes() {
+
+		return adminCodeRepository.findAll();
+	}
+
+	public Code getCode(Long id) {
+		
+		return adminCodeRepository.findById(id)
+									.orElseThrow(() -> new EntityNotFoundException(Code.class, "id", String.valueOf(id)));
+	}
+
+	public void deleteCode(Long id) {
+		
+		adminCodeRepository.delete(getCode(id));
 	}
 
 	
