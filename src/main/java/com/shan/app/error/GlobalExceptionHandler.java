@@ -233,6 +233,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return buildResponseEntity(apiError);
 	}
 	
+	@ExceptionHandler(CategoryDuplicatedException.class)
+	public ResponseEntity<Object> handleCategoryDuplicatedException(CategoryDuplicatedException ex) {
+		ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
+		apiError.setMessage(String.format("[%s] 중복된 카테고리가 있습니다.", ex.getCategory()));
+		return buildResponseEntity(apiError);
+	}
+	
 	@ExceptionHandler(ExtensionNotAllowedException.class)
 	public ResponseEntity<Object> handleExtensionNotAllowedException(ExtensionNotAllowedException ex) {
 		String message = "업로드 할 수 있는 확장자는 [" + ex.getAllowExtensions() + "] 입니다.";

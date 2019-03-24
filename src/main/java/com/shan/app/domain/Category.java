@@ -1,15 +1,11 @@
 package com.shan.app.domain;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -27,11 +23,23 @@ public class Category {
 	@GeneratedValue
 	private Long id;
 
-	@Column(length = 20, unique = true, nullable = false)
+	@Column(length = 20, nullable = false)
 	private String category;
 	
 	@Column(length = 100, nullable = false)
 	private String categoryName;
+	
+	@Column(length = 20)
+	private String parentCategory;
+	
+	@Column(length = 20)
+	private String topCategory;
+	
+	@Column(length = 200)
+	private String categoryDesc;
+	
+	@Column(nullable = false)
+	private Integer level;
 	
 	@Column(length = 1, nullable = false)
 	private String useYn;
@@ -40,12 +48,9 @@ public class Category {
 	private Integer ord;
 	
 	@Column(name = "reg_date")
-	private Date regDate;
+	private LocalDateTime regDate;
 	
 	@Column(name = "update_date")
-	private Date updateDate;
+	private LocalDateTime updateDate;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "group_category_id", nullable = false)
-	private GroupCategory groupCategory;
 }
