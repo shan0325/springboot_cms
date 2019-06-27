@@ -38,7 +38,7 @@ public class AdminUserResource {
 	@Autowired
 	private ModelMapper modelMapper;
 	
-	@PostMapping("/user")
+	@PostMapping("/users")
 	public ResponseEntity<Object> createUser(@RequestBody @Valid UserDTO.Create create) {
 		logger.info("Request Param [{}]", create);
 		
@@ -46,7 +46,7 @@ public class AdminUserResource {
 		return new ResponseEntity<>(modelMapper.map(newUser, UserDTO.Response.class), HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/user/{userId}")
+	@PutMapping("/users/{userId}")
 	public ResponseEntity<Object> updateUser(@PathVariable String userId, @RequestBody @Valid UserDTO.Update update) {
 		logger.info("Request Param [{}, {}]", userId, update);
 		
@@ -54,7 +54,7 @@ public class AdminUserResource {
 		return new ResponseEntity<>(modelMapper.map(updatedUser, UserDTO.Response.class), HttpStatus.OK);
 	}
 	
-	@GetMapping("/user/{userId}")
+	@GetMapping("/users/{userId}")
 	public ResponseEntity<Object> getUser(@PathVariable String userId) {
 		logger.info("Request Param [{}]", userId);
 		
@@ -70,12 +70,12 @@ public class AdminUserResource {
 		
 		return new ResponseEntity<>(users.map(user -> {
 					UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
-					response.add(linkTo(AdminUserResource.class).slash("user").slash(user.getUserId()).withRel("user"));
+					response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getUserId()).withRel("users"));
 					return response;
 				}), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/user/{userId}")
+	@DeleteMapping("/users/{userId}")
 	public ResponseEntity<Object> deleteUser(@PathVariable String userId) {
 		logger.info("Request Param [{}]", userId);
 		

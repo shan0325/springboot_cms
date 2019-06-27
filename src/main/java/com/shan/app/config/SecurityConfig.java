@@ -4,7 +4,7 @@ import javax.annotation.Resource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -21,11 +21,12 @@ import com.shan.app.security.CustomAuthenticationFailureHandler;
 import com.shan.app.security.CustomAuthenticationSuccessHandler;
 import com.shan.app.security.admin.AdminCustomUserDetailsService;
 
-@EnableWebSecurity
+
+
+@Configuration
 public class SecurityConfig {
 
-	@Configuration
-	@Order(1)
+	@EnableWebSecurity
 	public static class AdminConfigurationAdapter extends WebSecurityConfigurerAdapter {
 		
 		@Resource(name="adminCustomUserDetailsService")
@@ -43,25 +44,27 @@ public class SecurityConfig {
 		
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http.csrf().disable();
-			http.headers().frameOptions().disable();
-			
-			http.addFilterAfter(ajaxSessionCheckFilter(), ExceptionTranslationFilter.class)
+			http
+				.csrf().disable()
+				.headers().frameOptions().disable()
+					.and()
+				.addFilterAfter(ajaxSessionCheckFilter(), ExceptionTranslationFilter.class)
 				.authorizeRequests()
 					.antMatchers("/h2-console/**").permitAll()
-					.antMatchers("/spring-admin/login/**").permitAll()
-					.antMatchers("/spring-admin/**").authenticated()
-				.and()
-				.formLogin()
-					.loginPage("/spring-admin/login") //로그인 페이지
-					.usernameParameter("userId")
-					.passwordParameter("password")
-					//.loginProcessingUrl("/spring-admin/login/process") //로그인 폼 action
-					.permitAll()
-				.and()
-				.logout()
-					.logoutUrl("/spring-admin/logout")
-					.permitAll();
+					.antMatchers("/spring-admin/login").permitAll()
+					.antMatchers("/spring-admin/auth/**").permitAll()
+					.antMatchers("/spring-admin/api/**").authenticated();
+//					.and()
+//				.formLogin()
+//					.loginPage("/spring-admin/login") //로그인 페이지
+//					.usernameParameter("userId")
+//					.passwordParameter("password")
+//					.loginProcessingUrl("/spring-admin/api/login") //로그인 폼 action
+//					.permitAll()
+//					.and()
+//				.logout()
+//					.logoutUrl("/spring-admin/logout")
+//					.permitAll();
 		}
 		
 		@Bean
@@ -96,5 +99,11 @@ public class SecurityConfig {
 			return new BCryptPasswordEncoder();
 		}
 		
+		@Bean
+		@Override
+		public AuthenticationManager authenticationManager() throws Exception {
+			return super.authenticationManager();
+		}
+
 	}
 }

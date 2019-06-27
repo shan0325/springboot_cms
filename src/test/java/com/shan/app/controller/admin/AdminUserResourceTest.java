@@ -1,12 +1,17 @@
 package com.shan.app.controller.admin;
 
 
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -14,7 +19,6 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import org.assertj.core.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +33,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shan.app.service.admin.dto.LoginDTO;
 import com.shan.app.service.admin.dto.UserDTO;
 import com.shan.app.service.admin.dto.UserDTO.Update;
 
@@ -56,22 +61,27 @@ public class AdminUserResourceTest {
 										.addFilter(springSecurityFilterChain)
 										.build();
 		
-		this.session = (MockHttpSession) mockMvc.perform(formLogin("/spring-admin/login")
-													.user("userId", "admin")
-													.password("password", "1234"))
-												.andExpect(status().is3xxRedirection())
+//		this.session = (MockHttpSession) mockMvc.perform(formLogin("/spring-admin/login")
+//													.user("userId", "admin")
+//													.password("password", "1234"))
+//												.andExpect(status().is3xxRedirection())
+//												.andReturn().getRequest().getSession();
+		
+		LoginDTO.Login login = new LoginDTO.Login();
+		login.setUserId("admin");
+		login.setPassword("1234");
+		
+		this.session = (MockHttpSession) mockMvc.perform(post("/spring-admin/api/login")
+													.contentType(MediaType.APPLICATION_JSON_UTF8)
+													.content(objectMapper.writeValueAsString(login)))
+												.andExpect(status().isOk())
 												.andReturn().getRequest().getSession();
 	}
 	
-	/*@Test
+	@Test
 	public void loginTest() throws Exception {
-		this.session = (MockHttpSession) mockMvc.perform(formLogin("/spring-admin/login")
-													.user("userId", "admin")
-													.password("password", "1234"))
-												.andDo(print())
-												.andExpect(status().is3xxRedirection())
-												.andReturn().getRequest().getSession();
-	}*/
+		assertThat(this.session.getId(), is("1"));
+	}
 	
 	@Test
 	public void createUserTest() throws Exception {
@@ -86,7 +96,7 @@ public class AdminUserResourceTest {
 		
 		user.setAuthoritys(authoritys);
 		
-		mockMvc.perform(post("/spring-admin/api/user")
+		mockMvc.perform(post("/spring-admin/api/users")
 							.session(session)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(user)))
@@ -108,7 +118,7 @@ public class AdminUserResourceTest {
 		
 		update.setAuthoritys(authoritys);
 		
-		mockMvc.perform(put("/spring-admin/api/user/admin")
+		mockMvc.perform(put("/spring-admin/api/users/admin")
 							.session(session)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(update)))
@@ -118,7 +128,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void getUserTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/api/user/admin")
+		mockMvc.perform(get("/spring-admin/api/users/admin")
 							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());
@@ -134,7 +144,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void deleteUserTest() throws Exception {
-		mockMvc.perform(delete("/spring-admin/api/user/admin")
+		mockMvc.perform(delete("/spring-admin/api/users/admin")
 							.session(session))
 				.andDo(print())
 				.andExpect(status().isOk());
