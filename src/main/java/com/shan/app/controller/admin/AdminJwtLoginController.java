@@ -15,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -50,6 +49,8 @@ public class AdminJwtLoginController {
     static final String TOKEN_PREFIX = "Bearer";
     static final String HEADER_STRING = "Authorization";
     
+    private Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    
     @Autowired
 	private AuthenticationManager authenticationManager;
     
@@ -74,22 +75,13 @@ public class AdminJwtLoginController {
 		
 		User user = adminUserService.getUser(userId);
 		
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
-		headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT, DELETE, OPTIONS");
-		headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization");
-		headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Authorization");
-		
-		Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 		String jwt = Jwts.builder()
 						.setSubject(user.getUserId())
 						.setExpiration(new Date(System.currentTimeMillis() + EXPIRATIONTIME))
 						.claim("name", user.getName())
 						.claim("scope", "self groups/admins")
-						.signWith(key)
+						.signWith(this.key)
 						.compact();
-		
-		headers.add(HttpHeaders.AUTHORIZATION, TOKEN_PREFIX + " " + jwt);
 		
 		List<AuthorityDTO.Response> authoritys = new ArrayList<AuthorityDTO.Response>();
 		user.getUserAuthoritys().forEach(userAuthority -> {
@@ -102,15 +94,13 @@ public class AdminJwtLoginController {
 		return new ResponseEntity<>(loginToken, HttpStatus.OK);
 	}
 	
-	@PostMapping("/auth/refresh2")
+	@PostMapping("/auth/refresh")
 	public ResponseEntity<Object> authRefresh(HttpServletRequest request, HttpServletResponse response) {
 		
 		String jwtstr = request.getHeader("Authorization");
         jwtstr = jwtstr.replace("Bearer ", "");
         
         try {
-        	Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-        	
 	        //코드를 체크 해주는 부분 입니다. 
 	        Jws<Claims> claims = Jwts.parser()
 					                  .setSigningKey(key)
@@ -125,7 +115,7 @@ public class AdminJwtLoginController {
 							.setExpiration(new Date(System.currentTimeMillis() + EXPIRATIONTIME))
 							.claim("name", user.getName())
 							.claim("scope", scope)
-							.signWith(key)
+							.signWith(this.key)
 							.compact();
 			
 			List<AuthorityDTO.Response> authoritys = new ArrayList<AuthorityDTO.Response>();

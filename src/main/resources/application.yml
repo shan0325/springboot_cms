@@ -25,3 +25,20 @@ spring:
   data:
     rest:
       base-path: api
+      
+
+security:
+  oauth2:
+    resource:
+      jwt:
+        key-value:
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhjkJ0J4SUFj96d68/Ppd
+          grsa0jk57uGi0s0HNQ4eM/6EsjArMRu3z0CqS7Yt7waQ9WasWdH432EVngleu/7W
+          fyFY6qPHRTp1GqC+veK+VMBA0eMAJsV+TiY3wuqQXqB25o2wf4tg7isUCgk/fbg4
+          IOOaZD1DAmrLwTfg/egU0AgWGHA9tIBy0WBg6nM1oN491Cj1hHtFPNXrwFiTnFq/
+          zpIKXUjrY7+e3duPwulo+QrSG3soog1Kgsv/D24ljiJjLjKqhXym4aQEArYJGmFL
+          9Gg9iby05ZEd4zf2LXwi7DykDNLmLrHQFwAVcAdLeL+ourj/1476WQwxsIixQHN0
+          9wIDAQAB
+          -----END PUBLIC KEY-----
+                
