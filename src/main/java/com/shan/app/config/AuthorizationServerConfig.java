@@ -1,55 +1,101 @@
 package com.shan.app.config;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
 import java.security.KeyPair;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.io.IOUtils;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import com.shan.app.security.SecurityProperties;
 import com.shan.app.security.admin.AdminCustomUserDetailsService;
 
+
+/**
+ * 참초 사이트
+ * https://blog.marcosbarbero.com/centralized-authorization-jwt-spring-boot2/
+ * 
+ * 
+ *
+ */
 public class AuthorizationServerConfig {
 	
 	@Configuration
 	@EnableAuthorizationServer
+	@EnableConfigurationProperties(SecurityProperties.class)
 	public static class AdminAuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 		
-		@Value("${resouce.id:spring-boot-application}")
-		private String resourceId;
-		
-		@Value("${access_token.validity_period:3600}")
-		int accessTokenValiditySeconds = 3600;
-		
-		@Autowired
-		private AuthenticationManager authenticationManager;
-		
-		@Autowired
+		private DataSource dataSource;
 		private PasswordEncoder passwordEncoder;
-		
-		@Resource(name="adminCustomUserDetailsService")
+		private AuthenticationManager authenticationManager;
+		private SecurityProperties securityProperties;
 		private AdminCustomUserDetailsService adminCustomUserDetailsService;
 		
-		@Autowired
-		private DataSource dataSource;
+		private JwtAccessTokenConverter jwtAccessTokenConverter;
+		private TokenStore tokenStore;
+		
+		public AdminAuthorizationServerConfig(final DataSource dataSource, final PasswordEncoder passwordEncoder,
+												final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
+												final AdminCustomUserDetailsService adminCustomUserDetailsService) {
+			this.dataSource = dataSource;
+			this.passwordEncoder = passwordEncoder;
+			this.authenticationManager = authenticationManager;
+			this.securityProperties = securityProperties;
+			this.adminCustomUserDetailsService = adminCustomUserDetailsService;
+		}
+		
+		@Bean
+		public TokenStore tokenStore() {
+			if(this.tokenStore == null) {
+//				this.tokenStore = new InMemoryTokenStore();
+//				this.tokenStore = new JdbcTokenStore(dataSource);
+				this.tokenStore = new JwtTokenStore(accessTokenConverter());
+			}
+			return this.tokenStore;
+		}
+		
+		@Bean
+		public DefaultTokenServices tokenService(final TokenStore tokenStore, final ClientDetailsService clientDetailsService) {
+			DefaultTokenServices tokenServices = new DefaultTokenServices();
+			tokenServices.setSupportRefreshToken(true);
+			tokenServices.setTokenStore(tokenStore);
+			tokenServices.setClientDetailsService(clientDetailsService);
+			tokenServices.setAuthenticationManager(this.authenticationManager);
+			return tokenServices;
+		}
+		
+		@Bean
+		public JwtAccessTokenConverter accessTokenConverter() {
+			if(this.jwtAccessTokenConverter != null) {
+				return this.jwtAccessTokenConverter;
+			}
+			
+			SecurityProperties.JwtProperties jwtProperties = this.securityProperties.getJwt();
+			KeyPair keyPair = keyPair(jwtProperties, keyStoreKeyFactory(jwtProperties));
+			
+			this.jwtAccessTokenConverter = new JwtAccessTokenConverter();
+			this.jwtAccessTokenConverter.setKeyPair(keyPair);
+			this.jwtAccessTokenConverter.setVerifierKey(getPublicKeyAsString(jwtProperties));
+			return this.jwtAccessTokenConverter;
+		}
 		
 		@Override
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
@@ -61,41 +107,40 @@ public class AuthorizationServerConfig {
 //					.accessTokenValiditySeconds(1*60*60)
 //					.refreshTokenValiditySeconds(6*60*60);
 			
-			clients.jdbc(dataSource);
+			clients.jdbc(this.dataSource);
 		}
 		
 		@Override
 		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-			endpoints.tokenStore(tokenStore())
-						.authenticationManager(authenticationManager)
-						.accessTokenConverter(accessTokenConverter());
+			endpoints.authenticationManager(this.authenticationManager)
+						.accessTokenConverter(accessTokenConverter())
+						.userDetailsService(this.adminCustomUserDetailsService)
+						.tokenStore(tokenStore());
 		}
 		
-		@Bean
-		public TokenStore tokenStore() {
-//			return new InMemoryTokenStore();
-//			return new JdbcTokenStore(dataSource);
-			return new JwtTokenStore(accessTokenConverter());
+		@Override
+		public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+			security.passwordEncoder(this.passwordEncoder)
+					.tokenKeyAccess("permitAll()")
+					.checkTokenAccess("isAuthenticated()");
+		}
+		
+		private KeyPair keyPair(SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
+			return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
 		}
 
-		@Bean
-		public JwtAccessTokenConverter accessTokenConverter() {
-			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-			KeyPair keyPair = new KeyStoreKeyFactory(new ClassPathResource("server.jks"), "123456".toCharArray()).getKeyPair("auth", "123456".toCharArray());
-			converter.setKeyPair(keyPair);
-			return converter;
+		private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
+			return new KeyStoreKeyFactory(jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
 		}
 		
-		@Bean
-		@Primary
-		public DefaultTokenServices tokenService() {
-			DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-			defaultTokenServices.setTokenStore(tokenStore());
-			defaultTokenServices.setSupportRefreshToken(true);
-			return defaultTokenServices;
+		private String getPublicKeyAsString(SecurityProperties.JwtProperties jwtProperties) {
+			try {
+				return IOUtils.toString(jwtProperties.getPublicKey().getInputStream(), UTF_8);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
-		
+
 		
 	}
-	
 }

@@ -1,9 +1,15 @@
 package com.shan.app.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -14,42 +20,27 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import com.shan.app.security.SecurityProperties;
+
 @Configuration
 @EnableResourceServer
+@EnableConfigurationProperties(SecurityProperties.class)
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	
-	@Value("${resource.id:spring-boot-application}")
-	private String resourceId;
+	private static final String ROOT_PATTERN = "/**";
 	
-	@Value("${security.oauth2.resource.jwt.key-value}")
-	private String publicKey;
+	private final SecurityProperties securityProperties;
 	
-	@Bean
-    public TokenStore tokenStore() {
-        return new JwtTokenStore(accessTokenConverter());
-    }
+	private TokenStore tokenStore;
 	
-	@Bean
-	public JwtAccessTokenConverter accessTokenConverter() {
-		System.out.println("publicKey : " + publicKey);
-		JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-		//converter.setSigningKey("secret");
-		converter.setVerifierKey(publicKey);
-		return converter;
+	public ResourceServerConfig(final SecurityProperties securityProperties, final TokenStore tokenStore) {
+		this.securityProperties = securityProperties;
+		this.tokenStore = tokenStore;
 	}
 	
-	@Bean
-	@Primary
-	public DefaultTokenServices tokenService() {
-		DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-		defaultTokenServices.setTokenStore(tokenStore());
-		defaultTokenServices.setSupportRefreshToken(true);
-		return defaultTokenServices;
-	}
-
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-		resources.resourceId(resourceId);
+		resources.tokenStore(this.tokenStore);
 	}
 	
 	@Override
@@ -61,10 +52,45 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 			.authorizeRequests()
 				.antMatchers("/spring-admin/login").permitAll()
 				.antMatchers("/spring-admin/auth/**").permitAll()
-				.antMatchers("/spring-admin/api/**").authenticated()
+				.antMatchers("/spring-admin/api/**").access("hasRole('ROLE_ADMIN')")
+//				.antMatchers(HttpMethod.GET, ROOT_PATTERN).access("#oauth2.hasScope('read')")
+//	            .antMatchers(HttpMethod.POST, ROOT_PATTERN).access("#oauth2.hasScope('write')")
+//	            .antMatchers(HttpMethod.PATCH, ROOT_PATTERN).access("#oauth2.hasScope('write')")
+//	            .antMatchers(HttpMethod.PUT, ROOT_PATTERN).access("#oauth2.hasScope('write')")
+//	            .antMatchers(HttpMethod.DELETE, ROOT_PATTERN).access("#oauth2.hasScope('write')")
 				.and()
 			.exceptionHandling()
 				.accessDeniedHandler(new OAuth2AccessDeniedHandler());
+	}
+	
+//	@Bean
+//	public DefaultTokenServices tokenService(TokenStore tokenStore) {
+//		DefaultTokenServices tokenServices = new DefaultTokenServices();
+//		tokenServices.setTokenStore(tokenStore);
+//		return tokenServices;
+//	}
+	
+//	@Bean
+//    public TokenStore tokenStore() {
+//		if(this.tokenStore == null) {
+//			this.tokenStore = new JwtTokenStore(accessTokenConverter());
+//		}
+//        return this.tokenStore;
+//    }
+	
+//	@Bean
+//	public JwtAccessTokenConverter accessTokenConverter() {
+//		JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+//		converter.setVerifierKey(getPublicKeyAsString());
+//		return converter;
+//	}
+
+	private String getPublicKeyAsString() {
+		try {
+			return IOUtils.toString(securityProperties.getJwt().getPublicKey().getInputStream(), UTF_8);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 }

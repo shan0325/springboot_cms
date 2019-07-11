@@ -1,7 +1,5 @@
 package com.shan.app.config;
 
-import javax.annotation.Resource;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +21,6 @@ import com.shan.app.security.CustomAuthenticationSuccessHandler;
 import com.shan.app.security.admin.AdminCustomUserDetailsService;
 
 
-
 public class SecurityConfig {
 
 	@Configuration
@@ -31,12 +28,30 @@ public class SecurityConfig {
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
 	public static class AdminConfigurationAdapter extends WebSecurityConfigurerAdapter {
 		
-		@Resource(name="adminCustomUserDetailsService")
+		private PasswordEncoder passwordEncoder;
 		private AdminCustomUserDetailsService adminCustomUserDetailsService;
+		
+		public AdminConfigurationAdapter(final AdminCustomUserDetailsService adminCustomUserDetailsService) {
+			this.adminCustomUserDetailsService = adminCustomUserDetailsService;
+		}
 		
 		@Override
 		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 			auth.userDetailsService(adminCustomUserDetailsService).passwordEncoder(passwordEncoder());
+		}
+		
+		@Bean
+		@Override
+		public AuthenticationManager authenticationManagerBean() throws Exception {
+			return super.authenticationManagerBean();
+		}
+		
+		@Bean
+		public PasswordEncoder passwordEncoder() {
+			if(this.passwordEncoder == null) {
+				this.passwordEncoder = new BCryptPasswordEncoder(); 
+			}
+			return this.passwordEncoder;
 		}
 		
 		@Override
@@ -44,18 +59,15 @@ public class SecurityConfig {
 			web.ignoring().antMatchers("/css/**", "/**/*.css",  "/script/**", "/**/*.js",  "image/**", "/fonts/**", "lib/**");
 		}
 		
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http
-				.csrf().disable()
-				.headers().frameOptions().disable()
-					.and()
-				.addFilterAfter(ajaxSessionCheckFilter(), ExceptionTranslationFilter.class)
-				.authorizeRequests()
-					.antMatchers("/h2-console/**").permitAll()
-					.antMatchers("/spring-admin/login").permitAll()
-					.antMatchers("/spring-admin/auth/**").permitAll()
-					.antMatchers("/spring-admin/api/**").authenticated();
+//		@Override
+//		protected void configure(HttpSecurity http) throws Exception {
+//			http
+//				.csrf().disable()
+//				.headers().frameOptions().disable()
+//					.and()
+//				.addFilterAfter(ajaxSessionCheckFilter(), ExceptionTranslationFilter.class)
+//				.authorizeRequests()
+//					.antMatchers("/h2-console/**").permitAll();
 //					.and()
 //				.formLogin()
 //					.loginPage("/spring-admin/login") //로그인 페이지
@@ -67,7 +79,7 @@ public class SecurityConfig {
 //				.logout()
 //					.logoutUrl("/spring-admin/logout")
 //					.permitAll();
-		}
+//		}
 		
 		@Bean
 		public AjaxSessionCheckFilter ajaxSessionCheckFilter() {
@@ -94,17 +106,6 @@ public class SecurityConfig {
 			failureHandler.setExceptionmsgname("securityexceptionmsg");
 			failureHandler.setDefaultFailureUrl("/spring-admin/login?error=true");
 			return failureHandler;
-		}
-		
-		@Bean
-		public PasswordEncoder passwordEncoder() {
-			return new BCryptPasswordEncoder();
-		}
-		
-		@Bean
-		@Override
-		public AuthenticationManager authenticationManager() throws Exception {
-			return super.authenticationManager();
 		}
 
 	}
