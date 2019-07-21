@@ -36,69 +36,67 @@ import com.shan.app.security.admin.AdminCustomUserDetailsService;
  * 
  *
  */
-public class AuthorizationServerConfig {
+@Configuration
+@EnableAuthorizationServer
+@EnableConfigurationProperties(SecurityProperties.class)
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+		
+	private DataSource dataSource;
+	private PasswordEncoder passwordEncoder;
+	private AuthenticationManager authenticationManager;
+	private SecurityProperties securityProperties;
+	private AdminCustomUserDetailsService adminCustomUserDetailsService;
 	
-	@Configuration
-	@EnableAuthorizationServer
-	@EnableConfigurationProperties(SecurityProperties.class)
-	public static class AdminAuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
-		
-		private DataSource dataSource;
-		private PasswordEncoder passwordEncoder;
-		private AuthenticationManager authenticationManager;
-		private SecurityProperties securityProperties;
-		private AdminCustomUserDetailsService adminCustomUserDetailsService;
-		
-		private JwtAccessTokenConverter jwtAccessTokenConverter;
-		private TokenStore tokenStore;
-		
-		public AdminAuthorizationServerConfig(final DataSource dataSource, final PasswordEncoder passwordEncoder,
-												final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
-												final AdminCustomUserDetailsService adminCustomUserDetailsService) {
-			this.dataSource = dataSource;
-			this.passwordEncoder = passwordEncoder;
-			this.authenticationManager = authenticationManager;
-			this.securityProperties = securityProperties;
-			this.adminCustomUserDetailsService = adminCustomUserDetailsService;
-		}
-		
-		@Bean
-		public TokenStore tokenStore() {
-			if(this.tokenStore == null) {
+	private JwtAccessTokenConverter jwtAccessTokenConverter;
+	private TokenStore tokenStore;
+	
+	public AuthorizationServerConfig(final DataSource dataSource, final PasswordEncoder passwordEncoder,
+											final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
+											final AdminCustomUserDetailsService adminCustomUserDetailsService) {
+		this.dataSource = dataSource;
+		this.passwordEncoder = passwordEncoder;
+		this.authenticationManager = authenticationManager;
+		this.securityProperties = securityProperties;
+		this.adminCustomUserDetailsService = adminCustomUserDetailsService;
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		if(this.tokenStore == null) {
 //				this.tokenStore = new InMemoryTokenStore();
 //				this.tokenStore = new JdbcTokenStore(dataSource);
-				this.tokenStore = new JwtTokenStore(accessTokenConverter());
-			}
-			return this.tokenStore;
+			this.tokenStore = new JwtTokenStore(accessTokenConverter());
 		}
-		
-		@Bean
-		public DefaultTokenServices tokenService(final TokenStore tokenStore, final ClientDetailsService clientDetailsService) {
-			DefaultTokenServices tokenServices = new DefaultTokenServices();
-			tokenServices.setSupportRefreshToken(true);
-			tokenServices.setTokenStore(tokenStore);
-			tokenServices.setClientDetailsService(clientDetailsService);
-			tokenServices.setAuthenticationManager(this.authenticationManager);
-			return tokenServices;
-		}
-		
-		@Bean
-		public JwtAccessTokenConverter accessTokenConverter() {
-			if(this.jwtAccessTokenConverter != null) {
-				return this.jwtAccessTokenConverter;
-			}
-			
-			SecurityProperties.JwtProperties jwtProperties = this.securityProperties.getJwt();
-			KeyPair keyPair = keyPair(jwtProperties, keyStoreKeyFactory(jwtProperties));
-			
-			this.jwtAccessTokenConverter = new JwtAccessTokenConverter();
-			this.jwtAccessTokenConverter.setKeyPair(keyPair);
-			this.jwtAccessTokenConverter.setVerifierKey(getPublicKeyAsString(jwtProperties));
+		return this.tokenStore;
+	}
+	
+	@Bean
+	public DefaultTokenServices tokenService(final TokenStore tokenStore, final ClientDetailsService clientDetailsService) {
+		DefaultTokenServices tokenServices = new DefaultTokenServices();
+		tokenServices.setSupportRefreshToken(true);
+		tokenServices.setTokenStore(tokenStore);
+		tokenServices.setClientDetailsService(clientDetailsService);
+		tokenServices.setAuthenticationManager(this.authenticationManager);
+		return tokenServices;
+	}
+	
+	@Bean
+	public JwtAccessTokenConverter accessTokenConverter() {
+		if(this.jwtAccessTokenConverter != null) {
 			return this.jwtAccessTokenConverter;
 		}
 		
-		@Override
-		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		SecurityProperties.JwtProperties jwtProperties = this.securityProperties.getJwt();
+		KeyPair keyPair = keyPair(jwtProperties, keyStoreKeyFactory(jwtProperties));
+		
+		this.jwtAccessTokenConverter = new JwtAccessTokenConverter();
+		this.jwtAccessTokenConverter.setKeyPair(keyPair);
+		this.jwtAccessTokenConverter.setVerifierKey(getPublicKeyAsString(jwtProperties));
+		return this.jwtAccessTokenConverter;
+	}
+	
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 //			clients.inMemory()
 //					.withClient("spring") // 예 : facebook clientId 와 같음
 //					.secret(passwordEncoder.encode("1234")) // 예 : facebook secret 와 같음
@@ -106,41 +104,39 @@ public class AuthorizationServerConfig {
 //					.scopes("read", "write", "trust")
 //					.accessTokenValiditySeconds(1*60*60)
 //					.refreshTokenValiditySeconds(6*60*60);
-			
-			clients.jdbc(this.dataSource);
-		}
 		
-		@Override
-		public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-			endpoints.authenticationManager(this.authenticationManager)
-						.accessTokenConverter(accessTokenConverter())
-						.userDetailsService(this.adminCustomUserDetailsService)
-						.tokenStore(tokenStore());
-		}
-		
-		@Override
-		public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-			security.passwordEncoder(this.passwordEncoder)
-					.tokenKeyAccess("permitAll()")
-					.checkTokenAccess("isAuthenticated()");
-		}
-		
-		private KeyPair keyPair(SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
-			return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
-		}
-
-		private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
-			return new KeyStoreKeyFactory(jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
-		}
-		
-		private String getPublicKeyAsString(SecurityProperties.JwtProperties jwtProperties) {
-			try {
-				return IOUtils.toString(jwtProperties.getPublicKey().getInputStream(), UTF_8);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		
+		clients.jdbc(this.dataSource);
 	}
+	
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.authenticationManager(this.authenticationManager)
+					.accessTokenConverter(accessTokenConverter())
+					.userDetailsService(this.adminCustomUserDetailsService)
+					.tokenStore(tokenStore());
+	}
+	
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+		security.passwordEncoder(this.passwordEncoder)
+				.tokenKeyAccess("permitAll()")
+				.checkTokenAccess("isAuthenticated()");
+	}
+	
+	private KeyPair keyPair(SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
+		return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
+	}
+
+	private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
+		return new KeyStoreKeyFactory(jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
+	}
+	
+	private String getPublicKeyAsString(SecurityProperties.JwtProperties jwtProperties) {
+		try {
+			return IOUtils.toString(jwtProperties.getPublicKey().getInputStream(), UTF_8);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+		
 }
