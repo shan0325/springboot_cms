@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import org.apache.commons.codec.binary.Base64;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,6 +112,20 @@ public class AdminLoginResource {
 		if(authentication != null) {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
+		
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PostMapping("/auth/token/refresh")
+	public ResponseEntity<Object> refreshToken(LoginDTO.LoginToken loginToken) {
+		logger.info("refreshToken method");
+		
+		String token = loginToken.getToken();
+		logger.info("token : " + token);
+		
+		String decodeToken = new String(Base64.decodeBase64(token));
+		logger.info("decodeToken : " + decodeToken);
+		
 		
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
