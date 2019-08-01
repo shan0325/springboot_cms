@@ -6,7 +6,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.annotation.Resource;
@@ -19,13 +21,13 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shan.app.domain.User;
 import com.shan.app.service.admin.AdminUserService;
 import com.shan.app.service.admin.dto.AuthorityDTO;
@@ -55,7 +59,7 @@ public class AdminLoginResource {
 	private ModelMapper modelMapper;
 	
 	@Autowired
-	private TokenStore TokenStore;
+	private ObjectMapper objectMapper;
 	
 
 	/**
@@ -126,8 +130,6 @@ public class AdminLoginResource {
 	
 	@PostMapping("/auth/token/refresh")
 	public ResponseEntity<Object> refreshToken(HttpServletRequest request, @RequestBody @Valid LoginDTO.LoginToken loginToken) {
-		logger.info("refreshToken method");
-		
 		User user = adminUserService.getUser(loginToken.getUserId());
 		
 		DataOutputStream out = null;
@@ -158,10 +160,13 @@ public class AdminLoginResource {
 			}
 			scan.close();
 			
+			Map<String, Object> map = new HashMap<String, Object>();
+			map = objectMapper.readValue(result.toString(), new TypeReference<Map<String, String>>(){});
+			
+			return new ResponseEntity<>(map, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new IllegalArgumentException();
 		}
-		
-		return new ResponseEntity<>(result.toString(), HttpStatus.OK);
 	}
 }
