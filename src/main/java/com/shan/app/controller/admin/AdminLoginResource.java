@@ -1,8 +1,13 @@
 package com.shan.app.controller.admin;
 
+import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -10,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
-import org.apache.commons.codec.binary.Base64;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +25,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +53,9 @@ public class AdminLoginResource {
 	
 	@Autowired
 	private ModelMapper modelMapper;
+	
+	@Autowired
+	private TokenStore TokenStore;
 	
 
 	/**
@@ -117,16 +125,43 @@ public class AdminLoginResource {
 	}
 	
 	@PostMapping("/auth/token/refresh")
-	public ResponseEntity<Object> refreshToken(LoginDTO.LoginToken loginToken) {
+	public ResponseEntity<Object> refreshToken(HttpServletRequest request, @RequestBody @Valid LoginDTO.LoginToken loginToken) {
 		logger.info("refreshToken method");
 		
-		String token = loginToken.getToken();
-		logger.info("token : " + token);
+		User user = adminUserService.getUser(loginToken.getUserId());
 		
-		String decodeToken = new String(Base64.decodeBase64(token));
-		logger.info("decodeToken : " + decodeToken);
+		DataOutputStream out = null;
+		InputStream is = null;
+		StringBuffer result = new StringBuffer();
+		try {
+			String param = "username=admin&grant_type=refresh_token&refresh_token=" + user.getRefreshToken();
+			
+			String urlStr = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/oauth/token";
+			URL url = new URL(urlStr);
+			URLConnection con = url.openConnection();
+			
+			con.setDoOutput(true);
+			con.setUseCaches(false);
+			con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			con.setRequestProperty("Authorization", "Basic c3ByaW5nOjEyMzQ=");
+			
+			out = new DataOutputStream(con.getOutputStream());
+			out.writeBytes(param);
+			out.flush();
+			out.close();
+			
+			is = con.getInputStream();
+			Scanner scan = new Scanner(is);
+			
+			while(scan.hasNext()) {
+				result.append(scan.nextLine());
+			}
+			scan.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
-		
-		return new ResponseEntity<>(HttpStatus.OK);
+		return new ResponseEntity<>(result.toString(), HttpStatus.OK);
 	}
 }

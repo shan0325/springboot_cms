@@ -63,6 +63,12 @@ public class User {
 	@Column(name = "login_fail_count")
 	private Integer loginFailCount;
 	
+	@Column(name = "refresh_token")
+	private String refreshToken;
+	
+	@Column(name = "refresh_token_reg_date")
+	private LocalDateTime refreshTokenRegDate;
+	
 	@OneToMany(mappedBy = "user")
 	private List<UserAuthority> userAuthoritys = new ArrayList<>();
 	

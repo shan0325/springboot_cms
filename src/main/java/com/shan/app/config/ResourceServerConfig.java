@@ -13,9 +13,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.shan.app.security.JwtAuthenticationFilter;
 import com.shan.app.security.SecurityProperties;
 
 @Configuration
@@ -45,7 +43,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 			.csrf().disable()
 			.headers().frameOptions().disable()
 				.and()
-//			.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 			.authorizeRequests()
 				.antMatchers("/spring-admin/login").permitAll()
 				.antMatchers("/spring-admin/auth/**").permitAll()
@@ -58,10 +55,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 				.and()
 			.exceptionHandling()
 				.accessDeniedHandler(new OAuth2AccessDeniedHandler());
-	}
-	
-	public JwtAuthenticationFilter jwtAuthenticationFilter() {
-		return new JwtAuthenticationFilter();
 	}
 	
 //	@Bean

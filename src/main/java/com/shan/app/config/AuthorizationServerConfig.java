@@ -22,9 +22,9 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import com.shan.app.security.JwtTokenStoreImpl;
 import com.shan.app.security.SecurityProperties;
 import com.shan.app.security.admin.AdminCustomUserDetailsService;
 
@@ -65,7 +65,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		if(this.tokenStore == null) {
 //				this.tokenStore = new InMemoryTokenStore();
 //				this.tokenStore = new JdbcTokenStore(dataSource);
-			this.tokenStore = new JwtTokenStore(accessTokenConverter());
+			this.tokenStore = new JwtTokenStoreImpl(accessTokenConverter());
 		}
 		return this.tokenStore;
 	}
