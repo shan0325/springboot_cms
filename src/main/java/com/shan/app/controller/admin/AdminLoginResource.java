@@ -129,8 +129,8 @@ public class AdminLoginResource {
 	}
 	
 	@PostMapping("/auth/token/refresh")
-	public ResponseEntity<Object> refreshToken(HttpServletRequest request, @RequestBody @Valid LoginDTO.LoginToken loginToken) {
-		User user = adminUserService.getUser(loginToken.getUserId());
+	public ResponseEntity<Object> refreshToken(HttpServletRequest request, LoginDTO.Login login) {
+		User user = adminUserService.getUser(login.getUserId());
 		
 		DataOutputStream out = null;
 		InputStream is = null;
@@ -145,7 +145,7 @@ public class AdminLoginResource {
 			con.setDoOutput(true);
 			con.setUseCaches(false);
 			con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			con.setRequestProperty("Authorization", "Basic c3ByaW5nOjEyMzQ=");
+			con.setRequestProperty("Authorization", request.getHeader("Authorization"));
 			
 			out = new DataOutputStream(con.getOutputStream());
 			out.writeBytes(param);
