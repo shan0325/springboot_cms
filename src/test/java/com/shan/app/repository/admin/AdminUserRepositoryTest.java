@@ -2,12 +2,11 @@ package com.shan.app.repository.admin;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import javax.jdo.annotations.Transactional;
 import javax.persistence.EntityManager;
 
 import org.junit.Test;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.shan.app.domain.User;
-import com.shan.app.domain.UserAuthority;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -47,20 +45,11 @@ public class AdminUserRepositoryTest {
 	}
 	
 	@Test
-	@Transactional
 	public void findUser() {
-		User user = adminUserRepository.findOneByUserId("admin");
-		System.out.println("user = " + user.getUserAuthoritys());
+		User user = adminUserRepository.findByUserId("admin").orElse(null);
+		System.out.println("user = " + user);
 		
-		em.persist(user);
-		
-		assertThat(user.getUserAuthoritys(), is(notNullValue()));
-		
-		List<UserAuthority> userAuthoritys = user.getUserAuthoritys();
-		userAuthoritys.forEach(userAuthority -> {
-			System.out.println("userAuthority = " + userAuthority.getAuthority().getAuthority());
-			System.out.println("userAuthority = " + userAuthority.getUser().getName());
-		});
+		assertThat(user, is(nullValue()));
 	}
 	
 	

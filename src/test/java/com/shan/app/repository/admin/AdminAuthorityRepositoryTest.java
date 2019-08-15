@@ -24,7 +24,7 @@ public class AdminAuthorityRepositoryTest {
 	
 	@Test
 	public void findOneByAuthorityTest() {
-		Optional<Authority> authority = adminAuthorityRepository.findById("MEMBER");
+		Optional<Authority> authority = adminAuthorityRepository.findById(2L);
 		
 		assertThat(authority, is(notNullValue()));
 		assertThat(authority.get().getAuthority(), is("MEMBER"));

@@ -46,11 +46,11 @@ public class AdminAuthorityResource {
 		return new ResponseEntity<>(modelMapper.map(newAuthority, AuthorityDTO.Response.class), HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/authority/{authority}")
-	public ResponseEntity<Object> updateAuthority(@PathVariable String authority, @RequestBody @Valid AuthorityDTO.Update update) {
-		logger.info("Request Param [{}, {}]", authority, update);
+	@PutMapping("/authority/{id}")
+	public ResponseEntity<Object> updateAuthority(@PathVariable Long id, @RequestBody @Valid AuthorityDTO.Update update) {
+		logger.info("Request Param [{}, {}]", id, update);
 		
-		Authority updatedAuthority = adminAuthorityService.updateAuthority(authority, update);
+		Authority updatedAuthority = adminAuthorityService.updateAuthority(id, update);
 		return new ResponseEntity<>(modelMapper.map(updatedAuthority, AuthorityDTO.Response.class), HttpStatus.OK);
 	}
 	
@@ -67,19 +67,19 @@ public class AdminAuthorityResource {
 				}), HttpStatus.OK);
 	}
 	
-	@GetMapping("/authority/{authority}")
-	public ResponseEntity<Object> getAuthority(@PathVariable String authority) {
-		logger.info("Request Param [{}]", authority);
+	@GetMapping("/authority/{id}")
+	public ResponseEntity<Object> getAuthority(@PathVariable Long id) {
+		logger.info("Request Param [{}]", id);
 		
-		Authority auth = adminAuthorityService.getAuthority(authority);
+		Authority auth = adminAuthorityService.getAuthority(id);
 		return new ResponseEntity<>(modelMapper.map(auth, AuthorityDTO.Response.class), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/authority/{authority}")
-	public ResponseEntity<Object> deleteAuthority(@PathVariable String authority) {
-		logger.info("Request Param [{}]", authority);
+	@DeleteMapping("/authority/{id}")
+	public ResponseEntity<Object> deleteAuthority(@PathVariable Long id) {
+		logger.info("Request Param [{}]", id);
 		
-		adminAuthorityService.deleteAuthority(authority);
+		adminAuthorityService.deleteAuthority(id);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	

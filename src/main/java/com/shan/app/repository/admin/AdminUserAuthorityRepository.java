@@ -1,5 +1,7 @@
 package com.shan.app.repository.admin;
 
+import java.util.List;
+
 import javax.jdo.annotations.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,5 +19,10 @@ public interface AdminUserAuthorityRepository extends JpaRepository<UserAuthorit
 	@Modifying
 	@Query("DELETE FROM UserAuthority u WHERE u.user = :user")
 	int deleteByUser(@Param("user") User user);
+	
+	@Transactional
+	@Modifying
+	@Query("SELECT u FROM UserAuthority u WHERE u.user = :user")
+	List<UserAuthority> findByUser(@Param("user") User user);
 
 }

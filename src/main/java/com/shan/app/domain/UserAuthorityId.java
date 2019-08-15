@@ -5,11 +5,11 @@ import java.util.Objects;
 
 public class UserAuthorityId implements Serializable {
 	
-	private String user;
-	private String authority;
+	private Long user;
+	private Long authority;
 	
 	public UserAuthorityId() { }
-	public UserAuthorityId(String user, String authority) {
+	public UserAuthorityId(Long user, Long authority) {
 		this.user = user;
 		this.authority = authority;
 	}

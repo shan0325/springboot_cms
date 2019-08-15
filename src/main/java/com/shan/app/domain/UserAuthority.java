@@ -19,12 +19,12 @@ public class UserAuthority {
 
 	@Id
 	@ManyToOne
-	@JoinColumn(name = "user_id", columnDefinition = "varchar(50)")
+	@JoinColumn(name = "user_id")
 	private User user;
 	
 	@Id
 	@ManyToOne
-	@JoinColumn(name = "authority", columnDefinition = "varchar(50)")
+	@JoinColumn(name = "authority_id")
 	private Authority authority;
 	
 }

@@ -26,16 +26,19 @@ public class AdminUserServiceTest {
 	@Test
 	public void createUserTest() {
 		UserDTO.Create user = new UserDTO.Create();
-		user.setUserId("test");
+		user.setUserId("admin");
 		user.setPassword("1234");
-		user.setName("테스트");
+		user.setName("관리자");
+		user.setEmail("admin@naver.com");
+		user.setHp("010-1111-2222");
+		user.setState("Y");
 
 		List<String> authoritys = new ArrayList<>();
-		authoritys.add("MEMBER");
+		authoritys.add("ADMIN");
 		
 		user.setAuthoritys(authoritys);
 		
-		User newUser = adminUserService.createUser(user);
+		User newUser = adminUserService.createUser("", user);
 		assertThat(user.getUserId(), is(newUser.getUserId()));
 	}
 

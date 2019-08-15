@@ -26,7 +26,7 @@ public class AdminAuthorityService {
 
 	public Authority createAuthority(@Valid AuthorityDTO.Create create) {
 		
-		Optional<Authority> optAuthority = adminAuthorityRepository.findById(create.getAuthority());
+		Optional<Authority> optAuthority = adminAuthorityRepository.findByAuthority(create.getAuthority());
 		if(optAuthority.isPresent()) {
 			throw new AuthorityDuplicatedException(create.getAuthority());
 		}
@@ -39,13 +39,13 @@ public class AdminAuthorityService {
 	}
 
 
-	public Authority updateAuthority(String authority, @Valid AuthorityDTO.Update update) {
-		Authority updateAuthority = adminAuthorityRepository.findById(authority)
+	public Authority updateAuthority(Long id, @Valid AuthorityDTO.Update update) {
+		Authority updateAuthority = adminAuthorityRepository.findById(id)
 			.map(auth -> {
 				auth.setAuthorityName(update.getAuthorityName());
 				return auth;
 			})
-			.orElseThrow(() -> new EntityNotFoundException(Authority.class, "authority", authority));
+			.orElseThrow(() -> new EntityNotFoundException(Authority.class, "id", String.valueOf(id)));
 		
 		return adminAuthorityRepository.save(updateAuthority);
 	}
@@ -57,15 +57,15 @@ public class AdminAuthorityService {
 	}
 
 
-	public Authority getAuthority(String authority) {
+	public Authority getAuthority(Long id) {
 		
-		return adminAuthorityRepository.findById(authority)
-										.orElseThrow(() -> new EntityNotFoundException(Authority.class, "authority", authority));
+		return adminAuthorityRepository.findById(id)
+										.orElseThrow(() -> new EntityNotFoundException(Authority.class, "id", String.valueOf(id)));
 	}
 
-	public void deleteAuthority(String authority) {
+	public void deleteAuthority(Long id) {
 		
-		adminAuthorityRepository.deleteById(authority);
+		adminAuthorityRepository.deleteById(id);
 	}
 
 	

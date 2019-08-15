@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import javax.annotation.Resource;
+import javax.security.auth.RefreshFailedException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -28,6 +29,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shan.app.domain.User;
+import com.shan.app.domain.UserAuthority;
+import com.shan.app.service.admin.AdminUserAuthorityService;
 import com.shan.app.service.admin.AdminUserService;
 import com.shan.app.service.admin.dto.AuthorityDTO;
 import com.shan.app.service.admin.dto.LoginDTO;
@@ -54,6 +58,9 @@ public class AdminLoginResource {
 	
 	@Resource(name="adminUserService")
 	private AdminUserService adminUserService;
+	
+	@Resource(name="adminUserAuthorityService")
+	private AdminUserAuthorityService adminUserAuthorityService;
 	
 	@Autowired
 	private ModelMapper modelMapper;
@@ -95,9 +102,13 @@ public class AdminLoginResource {
 		User user = adminUserService.getUser(userId);
 		
 		List<AuthorityDTO.Response> authoritys = new ArrayList<AuthorityDTO.Response>();
-		user.getUserAuthoritys().forEach(userAuthority -> {
-			authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
-		});
+		
+		List<UserAuthority> userAuthoritys = adminUserAuthorityService.getUserAuthoritys(user);
+		if(userAuthoritys != null) {
+			userAuthoritys.forEach(userAuthority -> {
+				authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
+			});
+		}
 		
 		logger.info("login sessionId : " + session.getId());
 		LoginDTO.LoginToken loginToken = new LoginDTO.LoginToken(user.getUserId(), authoritys, session.getId());
@@ -165,8 +176,8 @@ public class AdminLoginResource {
 			
 			return new ResponseEntity<>(map, HttpStatus.OK);
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new IllegalArgumentException();
+			//e.printStackTrace();
+			throw new RuntimeException(e.getMessage(), e.getCause());
 		}
 	}
 }

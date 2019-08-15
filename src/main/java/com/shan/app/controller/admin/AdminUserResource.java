@@ -3,6 +3,7 @@ package com.shan.app.controller.admin;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.modelmapper.ModelMapper;
@@ -11,14 +12,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,26 +46,26 @@ public class AdminUserResource {
 	private ModelMapper modelMapper;
 	
 	@PostMapping("/users")
-	public ResponseEntity<Object> createUser(@RequestBody @Valid UserDTO.Create create) {
-		logger.info("Request Param [{}]", create);
+	public ResponseEntity<Object> createUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestBody @Valid UserDTO.Create create) {
+		logger.info("Request Param [{}, {}]", authorization, create);
 		
-		User newUser = adminUserService.createUser(create);
+		User newUser = adminUserService.createUser(authorization, create);
 		return new ResponseEntity<>(modelMapper.map(newUser, UserDTO.Response.class), HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/users/{userId}")
-	public ResponseEntity<Object> updateUser(@PathVariable String userId, @RequestBody @Valid UserDTO.Update update) {
-		logger.info("Request Param [{}, {}]", userId, update);
+	@PutMapping("/users/{id}")
+	public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid UserDTO.Update update) {
+		logger.info("Request Param [{}, {}]", id, update);
 		
-		User updatedUser = adminUserService.updateUser(userId, update);
+		User updatedUser = adminUserService.updateUser(id, update);
 		return new ResponseEntity<>(modelMapper.map(updatedUser, UserDTO.Response.class), HttpStatus.OK);
 	}
 	
-	@GetMapping("/users/{userId}")
-	public ResponseEntity<Object> getUser(@PathVariable String userId) {
-		logger.info("Request Param [{}]", userId);
+	@GetMapping("/users/{id}")
+	public ResponseEntity<Object> getUser(@PathVariable Long id) {
+		logger.info("Request Param [{}]", id);
 		
-		User user = adminUserService.getUser(userId);
+		User user = adminUserService.getUser(id);
 		return new ResponseEntity<>(modelMapper.map(user, UserDTO.Response.class), HttpStatus.OK);
 	}
 	
@@ -75,11 +82,11 @@ public class AdminUserResource {
 				}), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/users/{userId}")
-	public ResponseEntity<Object> deleteUser(@PathVariable String userId) {
-		logger.info("Request Param [{}]", userId);
+	@DeleteMapping("/users/{id}")
+	public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
+		logger.info("Request Param [{}]", id);
 		
-		adminUserService.deleteUser(userId);
+		adminUserService.deleteUser(id);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	

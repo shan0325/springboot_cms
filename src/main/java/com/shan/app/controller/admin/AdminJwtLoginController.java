@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shan.app.domain.User;
+import com.shan.app.domain.UserAuthority;
+import com.shan.app.service.admin.AdminUserAuthorityService;
 import com.shan.app.service.admin.AdminUserService;
 import com.shan.app.service.admin.dto.AuthorityDTO;
 import com.shan.app.service.admin.dto.LoginDTO;
@@ -57,6 +59,9 @@ public class AdminJwtLoginController {
     @Resource(name="adminUserService")
 	private AdminUserService adminUserService;
     
+    @Resource(name="adminUserAuthorityService")
+	private AdminUserAuthorityService adminUserAuthorityService;
+    
     @Autowired
 	private ModelMapper modelMapper;
 
@@ -84,9 +89,13 @@ public class AdminJwtLoginController {
 						.compact();
 		
 		List<AuthorityDTO.Response> authoritys = new ArrayList<AuthorityDTO.Response>();
-		user.getUserAuthoritys().forEach(userAuthority -> {
-			authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
-		});
+		
+		List<UserAuthority> userAuthoritys = adminUserAuthorityService.getUserAuthoritys(user);
+		if(userAuthoritys != null) {
+			userAuthoritys.forEach(userAuthority -> {
+				authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
+			});
+		}
 		
 		LoginDTO.LoginToken loginToken = new LoginDTO.LoginToken(userId, authoritys, jwt);
 		logger.info("loginToken : " + loginToken);
@@ -119,9 +128,13 @@ public class AdminJwtLoginController {
 							.compact();
 			
 			List<AuthorityDTO.Response> authoritys = new ArrayList<AuthorityDTO.Response>();
-			user.getUserAuthoritys().forEach(userAuthority -> {
-				authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
-			});
+			
+			List<UserAuthority> userAuthoritys = adminUserAuthorityService.getUserAuthoritys(user);
+			if(userAuthoritys != null) {
+				userAuthoritys.forEach(userAuthority -> {
+					authoritys.add(modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class));
+				});
+			}
 			
 			LoginDTO.LoginToken loginToken = new LoginDTO.LoginToken(userId, authoritys, jwt);
 			logger.info("loginToken : " + loginToken);
