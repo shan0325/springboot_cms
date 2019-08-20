@@ -1,7 +1,6 @@
 package com.shan.app.controller.admin;
 
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
@@ -11,7 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -33,6 +31,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shan.app.oauth.Oauth2LoginTest;
 import com.shan.app.service.admin.dto.LoginDTO;
 import com.shan.app.service.admin.dto.UserDTO;
 import com.shan.app.service.admin.dto.UserDTO.Update;
@@ -55,6 +54,8 @@ public class AdminUserResourceTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	private String accessToken;
+	
 	@Before
 	public void setUp() throws Exception {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
@@ -67,15 +68,8 @@ public class AdminUserResourceTest {
 //												.andExpect(status().is3xxRedirection())
 //												.andReturn().getRequest().getSession();
 		
-		LoginDTO.Login login = new LoginDTO.Login();
-		login.setUserId("admin");
-		login.setPassword("1234");
-		
-		this.session = (MockHttpSession) mockMvc.perform(post("/spring-admin/api/login")
-													.contentType(MediaType.APPLICATION_JSON_UTF8)
-													.content(objectMapper.writeValueAsString(login)))
-												.andExpect(status().isOk())
-												.andReturn().getRequest().getSession();
+		accessToken = Oauth2LoginTest.obtainAccessToken(mockMvc);
+		System.out.println("accessToken : " + accessToken);
 	}
 	
 	@Test
@@ -86,22 +80,29 @@ public class AdminUserResourceTest {
 	@Test
 	public void createUserTest() throws Exception {
 		UserDTO.Create user = new UserDTO.Create();
-		user.setUserId("test");
+		user.setUserId("test2");
 		user.setPassword("1234");
 		user.setName("테스트");
 		user.setState("N");
 
 		List<String> authoritys = new ArrayList<>();
+		authoritys.add("ADMIN");
 		authoritys.add("MEMBER");
-		
 		user.setAuthoritys(authoritys);
 		
-		mockMvc.perform(post("/spring-admin/api/users")
-							.session(session)
-							.contentType(MediaType.APPLICATION_JSON)
-							.content(objectMapper.writeValueAsString(user)))
-				.andDo(print())
-				.andExpect(status().isCreated());
+	    mockMvc.perform(post("/spring-admin/api/users")
+				            .header("Authorization", "Bearer " + accessToken)
+				            .contentType(MediaType.APPLICATION_JSON_UTF8)
+				            .content(objectMapper.writeValueAsString(user)))
+	    		.andDo(print())
+	            .andExpect(status().isCreated());
+		
+//		mockMvc.perform(post("/spring-admin/api/users")
+//							.session(session)
+//							.contentType(MediaType.APPLICATION_JSON)
+//							.content(objectMapper.writeValueAsString(user)))
+//				.andDo(print())
+//				.andExpect(status().isCreated());
 	}
 	
 	@Test

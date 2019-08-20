@@ -46,21 +46,20 @@ public class Oauth2LoginTest {
 										.build();
 	}
 
-	private String obtainAccessToken(String username, String password) throws Exception {
+	public static String obtainAccessToken(MockMvc mockMvc, String username, String password) throws Exception {
 	    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 	    params.add("grant_type", "password");
 //	    params.add("client_id", "spring");
 	    params.add("username", username);
 	    params.add("password", password);
 	 
-	    ResultActions result 
-	      = mockMvc.perform(post("/oauth/token")
-	        .params(params)
-	        .with(httpBasic("spring", "1234"))
-	        .accept(MediaType.APPLICATION_JSON_UTF8))
-	      	.andDo(print())
-	        .andExpect(status().isOk())
-	        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
+	    ResultActions result = mockMvc.perform(post("/oauth/token")
+								        .params(params)
+								        .with(httpBasic("spring", "1234"))
+								        .accept(MediaType.APPLICATION_JSON_UTF8))
+								      	.andDo(print())
+								        .andExpect(status().isOk())
+								        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
 	 
 	    String resultString = result.andReturn().getResponse().getContentAsString();
 	 
@@ -68,9 +67,13 @@ public class Oauth2LoginTest {
 	    return jsonParser.parseMap(resultString).get("access_token").toString();
 	}
 	
+	public static String obtainAccessToken(MockMvc mockMvc) throws Exception {
+		return obtainAccessToken(mockMvc, "admin", "1234");
+	}
+	
 	@Test
 	public void when_callUsers_expect_success() throws Exception {
-	    String accessToken = obtainAccessToken("admin", "1234");
+	    String accessToken = obtainAccessToken(mockMvc);
 	    
 	    mockMvc.perform(get("/spring-admin/api/users")
 	            .header("Authorization", "Bearer " + accessToken)

@@ -1,20 +1,22 @@
 package com.shan.app.service.admin;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
@@ -28,8 +30,9 @@ import com.shan.app.error.UserDuplicatedException;
 import com.shan.app.repository.admin.AdminAuthorityRepository;
 import com.shan.app.repository.admin.AdminUserAuthorityRepository;
 import com.shan.app.repository.admin.AdminUserRepository;
-import com.shan.app.security.SecurityUser;
+import com.shan.app.service.admin.dto.AuthorityDTO;
 import com.shan.app.service.admin.dto.UserDTO;
+import com.shan.app.service.admin.dto.UserDTO.Response;
 import com.shan.app.util.AccessTokenUtil;
 
 @Service
@@ -53,8 +56,11 @@ public class AdminUserService {
 	@Autowired
 	private PasswordEncoder bCryptPasswordEncoder;
 	
+	@Autowired
+	private ModelMapper modelMapper;
 	
-	public User createUser(String authorization, UserDTO.Create create) {
+	
+	public UserDTO.Response createUser(String authorization, UserDTO.Create create) {
 
 		Optional<User> userOptional = adminUserRepository.findByUserId(create.getUserId());
 		if(userOptional.isPresent()) {
@@ -75,12 +81,14 @@ public class AdminUserService {
 		user.setRegUserId(authentication.getName());
 		
 		User newUser = adminUserRepository.save(user);
-		if(newUser != null) {
-			List<String> authoritys = create.getAuthoritys();
-			setUserAddUserAuthority(authoritys, newUser);
-		}
+		List<UserAuthority> userAuthoritys = setUserAddUserAuthority(create.getAuthoritys(), newUser);
 		
-		return newUser;
+		UserDTO.Response response = modelMapper.map(newUser, UserDTO.Response.class);
+		response.setAuthoritys(userAuthoritys.stream()
+											.map(userAuthority -> modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class))
+											.collect(Collectors.toList()));
+		
+		return response;
 	}
 
 	public User updateUser(Long id, UserDTO.Update update) {
@@ -125,7 +133,9 @@ public class AdminUserService {
 								.orElseThrow(() -> new EntityNotFoundException(User.class, "userId", userId));
 	}
 	
-	public void setUserAddUserAuthority(List<String> authoritys, User user) {
+	public List<UserAuthority> setUserAddUserAuthority(List<String> authoritys, User user) {
+		List<UserAuthority> userAuthoritys = new ArrayList<>();
+		
 		if(authoritys != null && authoritys.size() > 0) {
 			//삭제 쿼리
 			adminUserAuthorityRepository.deleteByUser(user);
@@ -139,9 +149,13 @@ public class AdminUserService {
 				userAuthority.setAuthority(authority);
 				
 				UserAuthority newUserAuthority = adminUserAuthorityRepository.save(userAuthority);
+				userAuthoritys.add(newUserAuthority);
+				
 				//user.addAuthority(newUserAuthority);
 			}
 		}
+		
+		return userAuthoritys;
 	}
 
 	public Page<User> getUsers(Pageable pageable) {

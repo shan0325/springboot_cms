@@ -49,8 +49,8 @@ public class AdminUserResource {
 	public ResponseEntity<Object> createUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestBody @Valid UserDTO.Create create) {
 		logger.info("Request Param [{}, {}]", authorization, create);
 		
-		User newUser = adminUserService.createUser(authorization, create);
-		return new ResponseEntity<>(modelMapper.map(newUser, UserDTO.Response.class), HttpStatus.CREATED);
+		UserDTO.Response response = adminUserService.createUser(authorization, create);
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/users/{id}")
