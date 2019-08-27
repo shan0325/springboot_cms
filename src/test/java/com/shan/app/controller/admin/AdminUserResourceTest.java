@@ -116,11 +116,12 @@ public class AdminUserResourceTest {
 
 		List<String> authoritys = new ArrayList<>();
 		authoritys.add("ADMIN");
+		authoritys.add("MEMBER");
 		
 		update.setAuthoritys(authoritys);
 		
-		mockMvc.perform(put("/spring-admin/api/users/admin")
-							.session(session)
+		mockMvc.perform(put("/spring-admin/api/users/69")
+							.header("Authorization", "Bearer " + accessToken)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(update)))
 				.andDo(print())
@@ -129,8 +130,8 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void getUserTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/api/users/admin")
-							.session(session))
+		mockMvc.perform(get("/spring-admin/api/users/69")
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
@@ -138,15 +139,15 @@ public class AdminUserResourceTest {
 	@Test
 	public void getUsersTest() throws Exception {
 		mockMvc.perform(get("/spring-admin/api/users")
-							.session(session))
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
 	
 	@Test
 	public void deleteUserTest() throws Exception {
-		mockMvc.perform(delete("/spring-admin/api/users/admin")
-							.session(session))
+		mockMvc.perform(delete("/spring-admin/api/users/69")
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}

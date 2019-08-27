@@ -2,6 +2,9 @@ package com.shan.app.controller.admin;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -30,8 +33,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shan.app.domain.User;
+import com.shan.app.domain.UserAuthority;
+import com.shan.app.service.admin.AdminUserAuthorityService;
 import com.shan.app.service.admin.AdminUserService;
+import com.shan.app.service.admin.dto.AuthorityDTO;
 import com.shan.app.service.admin.dto.UserDTO;
+import com.shan.app.service.admin.dto.UserDTO.Response;
 
 @RestController
 @RequestMapping("/spring-admin/api")
@@ -41,6 +48,9 @@ public class AdminUserResource {
 
 	@Resource(name="adminUserService")
 	private AdminUserService adminUserService;
+	
+	@Resource(name="adminUserAuthorityService")
+	private AdminUserAuthorityService adminUserAuthorityService;
 	
 	@Autowired
 	private ModelMapper modelMapper;
@@ -57,8 +67,8 @@ public class AdminUserResource {
 	public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody @Valid UserDTO.Update update) {
 		logger.info("Request Param [{}, {}]", id, update);
 		
-		User updatedUser = adminUserService.updateUser(id, update);
-		return new ResponseEntity<>(modelMapper.map(updatedUser, UserDTO.Response.class), HttpStatus.OK);
+		UserDTO.Response response = adminUserService.updateUser(id, update);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	@GetMapping("/users/{id}")
@@ -66,20 +76,24 @@ public class AdminUserResource {
 		logger.info("Request Param [{}]", id);
 		
 		User user = adminUserService.getUser(id);
-		return new ResponseEntity<>(modelMapper.map(user, UserDTO.Response.class), HttpStatus.OK);
+		
+		List<UserAuthority> userAuthoritys = adminUserAuthorityService.getUserAuthoritys(user);
+		
+		UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
+		response.setAuthoritys(userAuthoritys.stream()
+											.map(userAuthority -> modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class))
+											.collect(Collectors.toList()));
+		
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	@GetMapping("/users")
 	public ResponseEntity<Object> getUsers(Pageable pageable) {
 		logger.info("Request Param [{}]", pageable);
 		
-		Page<User> users = adminUserService.getUsers(pageable);
+		Page<Response> responses = adminUserService.getUsers(pageable);
 		
-		return new ResponseEntity<>(users.map(user -> {
-					UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
-					response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getUserId()).withRel("users"));
-					return response;
-				}), HttpStatus.OK);
+		return new ResponseEntity<>(responses, HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/users/{id}")

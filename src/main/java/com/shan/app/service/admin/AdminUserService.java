@@ -1,5 +1,7 @@
 package com.shan.app.service.admin;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 
+import com.querydsl.core.Tuple;
+import com.shan.app.controller.admin.AdminUserResource;
 import com.shan.app.domain.Authority;
 import com.shan.app.domain.User;
 import com.shan.app.domain.UserAuthority;
@@ -91,7 +95,7 @@ public class AdminUserService {
 		return response;
 	}
 
-	public User updateUser(Long id, UserDTO.Update update) {
+	public UserDTO.Response updateUser(Long id, UserDTO.Update update) {
 		
 		User updatedUser = adminUserRepository.findById(id)
 			.map(u -> {
@@ -99,6 +103,7 @@ public class AdminUserService {
 				u.setEmail(update.getEmail());
 				u.setHp(update.getHp());
 				u.setTel(update.getTel());
+				u.setState(update.getState());
 				u.setUpdateDate(LocalDateTime.now());
 				
 				if(!StringUtils.isBlank(update.getPassword()) || !StringUtils.isBlank(update.getPasswordConfirm())) {
@@ -113,14 +118,14 @@ public class AdminUserService {
 			.orElseThrow(() -> new EntityNotFoundException(User.class, "id", String.valueOf(id)));
 		logger.info("Updated User [{}]", updatedUser);
 		
-		//User updatedUser = adminUserRepository.save(updateUser);
-		if(updatedUser != null) {
-			List<String> authoritys = update.getAuthoritys();
-			//updatedUser.getUserAuthoritys().clear();
-			setUserAddUserAuthority(authoritys, updatedUser);
-		}
+		List<UserAuthority> userAuthoritys = setUserAddUserAuthority(update.getAuthoritys(), updatedUser);
 		
-		return updatedUser;
+		UserDTO.Response response = modelMapper.map(updatedUser, UserDTO.Response.class);
+		response.setAuthoritys(userAuthoritys.stream()
+											.map(userAuthority -> modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class))
+											.collect(Collectors.toList()));
+		
+		return response;
 	}
 	
 	public User getUser(Long id) {
@@ -158,9 +163,42 @@ public class AdminUserService {
 		return userAuthoritys;
 	}
 
-	public Page<User> getUsers(Pageable pageable) {
+	public Page<Response> getUsers(Pageable pageable) {
 		
-		return adminUserRepository.findAll(pageable);
+		List<Tuple> list = adminUserRepository.findList(pageable);
+		System.out.println("tuple list : " + list);
+		
+		List<Tuple> list2 = list.stream().distinct().collect(Collectors.toList());
+		System.out.println("tuple list2 : " + list2);
+		
+		
+		List<UserDTO.Response> responseList = new ArrayList<>();
+		for(Tuple row : list) {
+			User user = row.get(0, User.class);
+			Authority authority = row.get(1, Authority.class);
+			System.out.println("user : " + user.getUserId());
+			System.out.println("authority : " + authority.getAuthority());
+			
+			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
+		}
+		
+		
+		Page<User> users = adminUserRepository.findAll(pageable);
+		
+		Page<Response> responses = users.map(user -> {
+			List<UserAuthority> userAuthoritys = adminUserAuthorityRepository.findByUser(user);
+			
+			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
+			
+			response.setAuthoritys(userAuthoritys.stream()
+												.map(userAuthority -> modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class))
+												.collect(Collectors.toList()));
+			
+			response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getId()).withRel("id"));
+			return response;
+		});
+		
+		return responses;
 	}
 
 	public void deleteUser(Long id) {

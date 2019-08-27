@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.shan.app.domain.User;
 
-public interface AdminUserRepository extends JpaRepository<User, Long> {
+public interface AdminUserRepository extends JpaRepository<User, Long>, AdminUserRepositoryCustom {
 
 	@EntityGraph(attributePaths="userAuthoritys")
 	Optional<User> findWithUserAuthoritiesByUserId(String userId);
