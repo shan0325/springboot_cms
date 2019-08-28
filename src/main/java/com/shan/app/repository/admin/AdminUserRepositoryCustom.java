@@ -1,13 +1,12 @@
 package com.shan.app.repository.admin;
 
-import java.util.List;
-
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import com.querydsl.core.Tuple;
+import com.shan.app.domain.User;
 
 public interface AdminUserRepositoryCustom {
 	
-	List<Tuple> findList(Pageable pageable);
+	PageImpl<User> findList(Pageable pageable);
 
 }

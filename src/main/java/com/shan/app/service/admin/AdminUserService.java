@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -154,51 +155,23 @@ public class AdminUserService {
 				userAuthority.setAuthority(authority);
 				
 				UserAuthority newUserAuthority = adminUserAuthorityRepository.save(userAuthority);
+				user.addAuthority(newUserAuthority);
 				userAuthoritys.add(newUserAuthority);
-				
-				//user.addAuthority(newUserAuthority);
 			}
 		}
 		
 		return userAuthoritys;
 	}
 
-	public Page<Response> getUsers(Pageable pageable) {
+	public Page<UserDTO.Response> getUsers(Pageable pageable) {
 		
-		List<Tuple> list = adminUserRepository.findList(pageable);
-		System.out.println("tuple list : " + list);
+		PageImpl<User> list = adminUserRepository.findList(pageable);
 		
-		List<Tuple> list2 = list.stream().distinct().collect(Collectors.toList());
-		System.out.println("tuple list2 : " + list2);
-		
-		
-		List<UserDTO.Response> responseList = new ArrayList<>();
-		for(Tuple row : list) {
-			User user = row.get(0, User.class);
-			Authority authority = row.get(1, Authority.class);
-			System.out.println("user : " + user.getUserId());
-			System.out.println("authority : " + authority.getAuthority());
-			
+		return list.map(user -> {
 			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
-		}
-		
-		
-		Page<User> users = adminUserRepository.findAll(pageable);
-		
-		Page<Response> responses = users.map(user -> {
-			List<UserAuthority> userAuthoritys = adminUserAuthorityRepository.findByUser(user);
-			
-			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
-			
-			response.setAuthoritys(userAuthoritys.stream()
-												.map(userAuthority -> modelMapper.map(userAuthority.getAuthority(), AuthorityDTO.Response.class))
-												.collect(Collectors.toList()));
-			
 			response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getId()).withRel("id"));
 			return response;
 		});
-		
-		return responses;
 	}
 
 	public void deleteUser(Long id) {
