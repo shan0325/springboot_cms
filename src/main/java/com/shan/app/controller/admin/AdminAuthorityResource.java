@@ -62,7 +62,7 @@ public class AdminAuthorityResource {
 		
 		return new ResponseEntity<>(authoritys.map(auth -> {
 					AuthorityDTO.Response response = modelMapper.map(auth, AuthorityDTO.Response.class);
-					response.add(ControllerLinkBuilder.linkTo(AdminAuthorityResource.class).slash("authority").slash(auth.getAuthority()).withRel("authority"));
+					response.add(ControllerLinkBuilder.linkTo(AdminAuthorityResource.class).slash("authority").slash(auth.getId()).withRel("id"));
 					return response;
 				}), HttpStatus.OK);
 	}

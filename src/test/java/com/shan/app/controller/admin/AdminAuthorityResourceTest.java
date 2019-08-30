@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shan.app.oauth.Oauth2LoginTest;
 import com.shan.app.service.admin.dto.AuthorityDTO;
 
 @RunWith(SpringRunner.class)
@@ -44,17 +45,21 @@ public class AdminAuthorityResourceTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	private String accessToken;
+	
 	@Before
 	public void setUp() throws Exception {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
 										.addFilter(springSecurityFilterChain)
 										.build();
 		
-		this.session = (MockHttpSession) mockMvc.perform(formLogin("/spring-admin/login")
-													.user("userId", "admin")
-													.password("password", "1234"))
-												.andExpect(status().is3xxRedirection())
-												.andReturn().getRequest().getSession();
+//		this.session = (MockHttpSession) mockMvc.perform(formLogin("/spring-admin/login")
+//													.user("userId", "admin")
+//													.password("password", "1234"))
+//												.andExpect(status().is3xxRedirection())
+//												.andReturn().getRequest().getSession();
+		
+		accessToken = Oauth2LoginTest.obtainAccessToken(mockMvc);
 	}
 	
 	@Test
@@ -64,8 +69,8 @@ public class AdminAuthorityResourceTest {
 		create.setAuthorityName("매니저");
 		
 		mockMvc.perform(post("/spring-admin/api/authority")
-							.session(session)
-							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + accessToken)
+							.contentType(MediaType.APPLICATION_JSON_UTF8)
 							.content(objectMapper.writeValueAsString(create)))
 				.andDo(print())
 				.andExpect(status().isCreated());
@@ -76,8 +81,8 @@ public class AdminAuthorityResourceTest {
 		AuthorityDTO.Update update = new AuthorityDTO.Update();
 		update.setAuthorityName("회원2");
 		
-		mockMvc.perform(put("/spring-admin/api/authority/MEMBER")
-							.session(session)
+		mockMvc.perform(put("/spring-admin/api/authority/1")
+							.header("Authorization", "Bearer " + accessToken)
 							.contentType(MediaType.APPLICATION_JSON)
 							.content(objectMapper.writeValueAsString(update)))
 				.andDo(print())
@@ -87,23 +92,23 @@ public class AdminAuthorityResourceTest {
 	@Test
 	public void getAuthoritysTest() throws Exception {
 		mockMvc.perform(get("/spring-admin/api/authoritys")
-							.session(session))
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
 	
 	@Test
 	public void getAuthorityTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/api/authority/ADMIN")
-							.session(session))
+		mockMvc.perform(get("/spring-admin/api/authority/1")
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
 	
 	@Test
 	public void deleteAuthorityTest() throws Exception {
-		mockMvc.perform(delete("/spring-admin/api/authority/ADMIN")
-							.session(session))
+		mockMvc.perform(delete("/spring-admin/api/authority/1")
+							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}

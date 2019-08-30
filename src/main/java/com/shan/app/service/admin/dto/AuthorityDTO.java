@@ -22,10 +22,30 @@ public class AuthorityDTO {
 		private String authorityName;
 	}
 	
-	@Data
 	public static class Response extends ResourceSupport {
+		private Long id;
 		private String authority;
 		private String authorityName;
+		
+		public Long getAuthorityId() {
+			return id;
+		}
+		public void setId(Long id) {
+			this.id = id;
+		}
+		public String getAuthority() {
+			return authority;
+		}
+		public void setAuthority(String authority) {
+			this.authority = authority;
+		}
+		public String getAuthorityName() {
+			return authorityName;
+		}
+		public void setAuthorityName(String authorityName) {
+			this.authorityName = authorityName;
+		}
+		
 	}
 
 }
