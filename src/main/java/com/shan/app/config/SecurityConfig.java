@@ -5,20 +5,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import com.shan.app.security.AjaxSessionCheckFilter;
 import com.shan.app.security.CustomAuthenticationFailureHandler;
 import com.shan.app.security.CustomAuthenticationSuccessHandler;
-import com.shan.app.security.admin.AdminCustomUserDetailsService;
+import com.shan.app.security.CustomUserDetailsService;
 
 
 public class SecurityConfig {
@@ -29,15 +27,15 @@ public class SecurityConfig {
 	public static class AdminConfigurationAdapter extends WebSecurityConfigurerAdapter {
 		
 		private PasswordEncoder passwordEncoder;
-		private AdminCustomUserDetailsService adminCustomUserDetailsService;
+		private CustomUserDetailsService customUserDetailsService;
 		
-		public AdminConfigurationAdapter(final AdminCustomUserDetailsService adminCustomUserDetailsService) {
-			this.adminCustomUserDetailsService = adminCustomUserDetailsService;
+		public AdminConfigurationAdapter(final CustomUserDetailsService customUserDetailsService) {
+			this.customUserDetailsService = customUserDetailsService;
 		}
 		
 		@Override
 		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.userDetailsService(adminCustomUserDetailsService).passwordEncoder(passwordEncoder());
+			auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
 		}
 		
 		@Bean

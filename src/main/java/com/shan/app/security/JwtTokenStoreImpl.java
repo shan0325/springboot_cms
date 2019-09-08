@@ -40,7 +40,7 @@ public class JwtTokenStoreImpl extends JwtTokenStore {
 		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 		
 		String isManager = request.getParameter("isManager");
-		if("Y".contentEquals(isManager)) {
+		if("Y".equals(isManager)) {
 			Manager manager = adminManagerService.getManager(userDetails.getUsername());
 			manager.setRefreshToken(refreshToken.getValue());
 			manager.setRefreshTokenRegDate(LocalDateTime.now());

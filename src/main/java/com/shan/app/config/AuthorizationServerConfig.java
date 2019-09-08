@@ -24,9 +24,9 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import com.shan.app.security.CustomUserDetailsService;
 import com.shan.app.security.JwtTokenStoreImpl;
 import com.shan.app.security.SecurityProperties;
-import com.shan.app.security.admin.AdminCustomUserDetailsService;
 
 
 /**
@@ -45,19 +45,19 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	private PasswordEncoder passwordEncoder;
 	private AuthenticationManager authenticationManager;
 	private SecurityProperties securityProperties;
-	private AdminCustomUserDetailsService adminCustomUserDetailsService;
+	private CustomUserDetailsService customUserDetailsService;
 	
 	private JwtAccessTokenConverter jwtAccessTokenConverter;
 	private TokenStore tokenStore;
 	
 	public AuthorizationServerConfig(final DataSource dataSource, final PasswordEncoder passwordEncoder,
 											final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
-											final AdminCustomUserDetailsService adminCustomUserDetailsService) {
+											final CustomUserDetailsService customUserDetailsService) {
 		this.dataSource = dataSource;
 		this.passwordEncoder = passwordEncoder;
 		this.authenticationManager = authenticationManager;
 		this.securityProperties = securityProperties;
-		this.adminCustomUserDetailsService = adminCustomUserDetailsService;
+		this.customUserDetailsService = customUserDetailsService;
 	}
 	
 	@Bean
@@ -112,7 +112,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 		endpoints.authenticationManager(this.authenticationManager)
 					.accessTokenConverter(accessTokenConverter())
-					.userDetailsService(this.adminCustomUserDetailsService)
+					.userDetailsService(this.customUserDetailsService)
 					.tokenStore(tokenStore());
 	}
 	
