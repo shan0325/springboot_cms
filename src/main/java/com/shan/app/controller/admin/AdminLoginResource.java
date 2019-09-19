@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Scanner;
 
 import javax.annotation.Resource;
-import javax.security.auth.RefreshFailedException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -22,14 +21,12 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,8 +37,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shan.app.domain.Manager;
 import com.shan.app.domain.User;
 import com.shan.app.domain.UserAuthority;
+import com.shan.app.service.admin.AdminManagerAuthorityService;
+import com.shan.app.service.admin.AdminManagerService;
 import com.shan.app.service.admin.AdminUserAuthorityService;
 import com.shan.app.service.admin.AdminUserService;
 import com.shan.app.service.admin.dto.AuthorityDTO;
@@ -61,6 +61,12 @@ public class AdminLoginResource {
 	
 	@Resource(name="adminUserAuthorityService")
 	private AdminUserAuthorityService adminUserAuthorityService;
+	
+	@Resource(name="adminManagerService")
+	private AdminManagerService adminManagerService;
+	
+	@Resource(name="adminManagerAuthorityService")
+	private AdminManagerAuthorityService adminManagerAuthorityService;
 	
 	@Autowired
 	private ModelMapper modelMapper;
@@ -141,13 +147,14 @@ public class AdminLoginResource {
 	
 	@PostMapping("/auth/token/refresh")
 	public ResponseEntity<Object> refreshToken(HttpServletRequest request, LoginDTO.Login login) {
-		User user = adminUserService.getUser(login.getUserId());
+		String userId = login.getUserId();
+		Manager manager = adminManagerService.getManager(userId);
 		
 		DataOutputStream out = null;
 		InputStream is = null;
 		StringBuffer result = new StringBuffer();
 		try {
-			String param = "username=admin&grant_type=refresh_token&refresh_token=" + user.getRefreshToken();
+			String param = "isManager=Y&username=" + userId + "&grant_type=refresh_token&refresh_token=" + manager.getRefreshToken();
 			
 			String urlStr = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/oauth/token";
 			URL url = new URL(urlStr);
