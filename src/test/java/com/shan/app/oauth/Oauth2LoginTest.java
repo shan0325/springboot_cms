@@ -52,6 +52,7 @@ public class Oauth2LoginTest {
 //	    params.add("client_id", "spring");
 	    params.add("username", username);
 	    params.add("password", password);
+	    params.add("isManager", "Y");
 	 
 	    ResultActions result = mockMvc.perform(post("/oauth/token")
 								        .params(params)
@@ -62,6 +63,7 @@ public class Oauth2LoginTest {
 								        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
 	 
 	    String resultString = result.andReturn().getResponse().getContentAsString();
+	    System.out.println(resultString);
 	 
 	    JacksonJsonParser jsonParser = new JacksonJsonParser();
 	    return jsonParser.parseMap(resultString).get("access_token").toString();

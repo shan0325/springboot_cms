@@ -11,6 +11,7 @@ import javax.validation.constraints.Size;
 
 import org.springframework.hateoas.ResourceSupport;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
@@ -71,6 +72,7 @@ public class UserDTO {
 	
 	@Data
 	public static class Response extends ResourceSupport {
+		private Long seqId;
 		private String userId;
 		private String name;
 		private String email;

@@ -130,7 +130,7 @@ public class AdminUserResourceTest {
 	
 	@Test
 	public void getUserTest() throws Exception {
-		mockMvc.perform(get("/spring-admin/api/users/69")
+		mockMvc.perform(get("/spring-admin/api/users/70")
 							.header("Authorization", "Bearer " + accessToken))
 				.andDo(print())
 				.andExpect(status().isOk());

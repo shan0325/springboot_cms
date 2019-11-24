@@ -163,15 +163,9 @@ public class AdminUserService {
 		return userAuthoritys;
 	}
 
-	public Page<UserDTO.Response> getUsers(Pageable pageable) {
+	public Page<User> getUsers(Pageable pageable) {
 		
-		PageImpl<User> list = adminUserRepository.findList(pageable);
-		
-		return list.map(user -> {
-			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
-			response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getId()).withRel("id"));
-			return response;
-		});
+		return adminUserRepository.findList(pageable);
 	}
 
 	public void deleteUser(Long id) {

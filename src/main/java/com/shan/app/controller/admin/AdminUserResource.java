@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -91,9 +92,14 @@ public class AdminUserResource {
 	public ResponseEntity<Object> getUsers(Pageable pageable) {
 		logger.info("Request Param [{}]", pageable);
 		
-		Page<Response> responses = adminUserService.getUsers(pageable);
+		Page<User> users = adminUserService.getUsers(pageable);
 		
-		return new ResponseEntity<>(responses, HttpStatus.OK);
+		return new ResponseEntity<>(users.map(user -> {
+			UserDTO.Response response = modelMapper.map(user, UserDTO.Response.class);
+			response.setSeqId(user.getId());
+			response.add(linkTo(AdminUserResource.class).slash("users").slash(user.getId()).withRel("id"));
+			return response;
+		}), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/users/{id}")
