@@ -79,7 +79,13 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		tokenServices.setAuthenticationManager(this.authenticationManager);
 		return tokenServices;
 	}
-	
+
+	/**
+	 * jwt토큰 방식의 좋은점은 db가 필요 없다는것이다. 서명을 통한 인증만 하면 된다.
+	 * 기본적으로 JwtAccessTokenConverter 만 등록해도 상관은 없다.
+	 * 하지만 여기선 KeyPair를 등록하는 방식으로 한다.
+	 * @return
+	 */
 	@Bean
 	public JwtAccessTokenConverter accessTokenConverter() {
 		if(this.jwtAccessTokenConverter != null) {
