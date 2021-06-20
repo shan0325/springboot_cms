@@ -1,12 +1,17 @@
-# # springboot_cms
-
-### 1. 개요 : SpringBoot + RestAPI를 적용하여 CMS 개발 목적
-
-### 2. 기술 : SpringBoot + SpringSecurity + oauth2 + jwt 사용
+# springboot_cms
+## # 개요
+### SpringBoot + RestAPI를 적용하여 CMS 개발 목적
 <br>
 
+## # 기술
+### SpringBoot + SpringSecurity + oauth2 + jwt 사용
+<br>
 
-## # 인증서 생성
+## # 계정
+### admin / 1234
+<br>
+
+### # 인증서 생성
 ```
 1. 키스토어 생성(비밀키와 공개키 정보를 담고 있음)  
 > keytool -genkeypair -alias server_private -keyalg RSA -keypass 123456 -keystore server.jks -storepass 123456 -validity 365
