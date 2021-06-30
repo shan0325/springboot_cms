@@ -59,7 +59,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		this.securityProperties = securityProperties;
 		this.customUserDetailsService = customUserDetailsService;
 	}
-	
+
 	@Bean
 	public TokenStore tokenStore() {
 		if(this.tokenStore == null) {
@@ -69,12 +69,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		}
 		return this.tokenStore;
 	}
-	
+
+	/**
+	 * 기본적으로 DefaultTokenServices는 랜덤 값으로 토큰을 생성하며, 토큰의 영속화를 TokenStore에 위임하는 걸 제외하고는 모든 걸 제어한다
+	 * @param tokenStore
+	 * @param clientDetailsService
+	 * @return
+	 */
 	@Bean
 	public DefaultTokenServices tokenService(final TokenStore tokenStore, final ClientDetailsService clientDetailsService) {
 		DefaultTokenServices tokenServices = new DefaultTokenServices();
 		tokenServices.setSupportRefreshToken(true);
-		tokenServices.setTokenStore(tokenStore);
+		tokenServices.setTokenStore(tokenStore());
 		tokenServices.setClientDetailsService(clientDetailsService);
 		tokenServices.setAuthenticationManager(this.authenticationManager);
 		return tokenServices;
@@ -97,7 +103,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		
 		this.jwtAccessTokenConverter = new JwtAccessTokenConverter();
 		this.jwtAccessTokenConverter.setKeyPair(keyPair);
-		this.jwtAccessTokenConverter.setVerifierKey(getPublicKeyAsString(jwtProperties));
 		return this.jwtAccessTokenConverter;
 	}
 	
@@ -136,13 +141,5 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
 		return new KeyStoreKeyFactory(jwtProperties.getKeyStore(), jwtProperties.getKeyStorePassword().toCharArray());
 	}
-	
-	private String getPublicKeyAsString(SecurityProperties.JwtProperties jwtProperties) {
-		try {
-			return IOUtils.toString(jwtProperties.getPublicKey().getInputStream(), UTF_8);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-		
+
 }
